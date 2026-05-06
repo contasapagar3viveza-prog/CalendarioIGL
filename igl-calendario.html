@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGL • Calendário</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── LOGIN SCREEN ── */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--green-dark, #3E4A1C);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 0;
+  }
+  #loginScreen::before {
+    content: '';
+    position: absolute; top: -100px; right: -100px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(212,88,26,0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #loginScreen::after {
+    content: '';
+    position: absolute; bottom: -80px; left: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(92,107,46,0.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 28px;
+    padding: 48px 40px 40px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    position: relative; z-index: 1;
+    animation: popIn .35s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(.92) translateY(20px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .login-logo-igl {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 6px; text-transform: uppercase;
+    color: #5C6B2E;
+  }
+  .login-logo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 900;
+    color: #D4581A; line-height: 1;
+    letter-spacing: -1px; margin-top: -6px;
+  }
+  .login-divider {
+    width: 48px; height: 3px;
+    background: linear-gradient(90deg, #D4581A, #5C6B2E);
+    border-radius: 2px;
+  }
+  .login-subtitle {
+    font-size: 13px; color: #888;
+    font-family: 'DM Sans', sans-serif;
+    text-align: center; margin-top: -8px;
+  }
+  .login-input-wrap {
+    width: 100%; position: relative;
+  }
+  .login-input-wrap input {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 500;
+    color: #3E4A1C;
+    background: #F5F0E8;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 14px 48px 14px 18px;
+    outline: none;
+    transition: border-color .18s;
+    letter-spacing: 2px;
+  }
+  .login-input-wrap input:focus { border-color: #D4581A; }
+  .toggle-pw {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; color: #999;
+    transition: color .15s;
+  }
+  .toggle-pw:hover { color: #D4581A; }
+  .login-btn {
+    width: 100%;
+    background: #D4581A;
+    color: white; border: none;
+    border-radius: 50px;
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: background .15s, transform .12s, box-shadow .15s;
+    box-shadow: 0 6px 22px rgba(212,88,26,0.32);
+  }
+  .login-btn:hover { background: #5C6B2E; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(62,74,28,0.28); }
+  .login-btn:active { transform: scale(0.97); }
+  .login-error {
+    font-size: 13px; color: #e53935;
+    font-weight: 600; text-align: center;
+    min-height: 18px; transition: opacity .2s;
+    opacity: 0;
+  }
+  .login-error.show { opacity: 1; }
+  .login-shake { animation: shake .35s; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+
+  :root {
+    --orange: #D4581A;
+    --orange-light: #E8763A;
+    --orange-pale: #F5C4A2;
+    --green: #5C6B2E;
+    --green-dark: #3E4A1C;
+    --green-light: #7A8C3A;
+    --cream: #F5F0E8;
+    --white: #FFFFFF;
+    --shadow: rgba(62,74,28,0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG decorative */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -120px; right: -120px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, var(--orange-pale) 0%, transparent 70%);
+    z-index: 0; pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -100px; left: -100px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(92,107,46,0.18) 0%, transparent 70%);
+    z-index: 0; pointer-events: none;
+  }
+
+  .app-wrapper {
+    position: relative; z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo-block {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .logo-igl {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .logo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 900;
+    color: var(--orange);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .logo-sep {
+    display: inline-block;
+    color: var(--green);
+    font-weight: 300;
+    font-size: 28px;
+    margin: 0 6px;
+  }
+
+  /* MONTH NAVIGATION */
+  .nav-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    border-radius: 50px;
+    padding: 8px 18px;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  .nav-block select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green-dark);
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0 6px 0 0;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .nav-block input[type="number"] {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green-dark);
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 58px;
+    text-align: center;
+  }
+  .nav-btn {
+    background: var(--orange);
+    border: none;
+    color: white;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .18s, transform .12s;
+  }
+  .nav-btn:hover { background: var(--green); transform: scale(1.12); }
+  .nav-dot {
+    width: 6px; height: 6px;
+    background: var(--orange-pale);
+    border-radius: 50%;
+  }
+
+  /* CALENDAR GRID */
+  .cal-card {
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 8px 40px var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--green-dark);
+    padding: 10px 0 6px;
+  }
+  .cal-weekdays span {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange-pale);
+    padding: 4px 0;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    padding: 4px;
+    background: var(--cream);
+    border-radius: 0 0 24px 24px;
+  }
+
+  .cal-cell {
+    aspect-ratio: 1/1;
+    border-radius: 12px;
+    margin: 3px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 7px 8px 5px;
+    transition: background .16s, transform .12s, box-shadow .15s;
+    position: relative;
+    background: var(--white);
+    border: 2px solid transparent;
+    min-height: 72px;
+  }
+  .cal-cell:hover {
+    background: #fff8f3;
+    border-color: var(--orange-pale);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212,88,26,0.13);
+    z-index: 2;
+  }
+  .cal-cell.empty { background: transparent; cursor: default; pointer-events: none; }
+  .cal-cell.today {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .cal-cell.today .day-num { color: white; }
+  .cal-cell.today:hover { background: var(--orange-light); }
+  .cal-cell.has-event { border-color: var(--green-light); }
+  .cal-cell.selected {
+    border-color: var(--green);
+    background: rgba(92,107,46,0.07);
+    box-shadow: 0 0 0 3px rgba(92,107,46,0.13);
+  }
+
+  .day-num {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green-dark);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .event-dots {
+    display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px;
+  }
+  .event-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+    flex-shrink: 0;
+  }
+  .event-dot.green { background: var(--green-light); }
+  .event-preview {
+    font-size: 9px;
+    color: var(--green-dark);
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    opacity: 0.82;
+  }
+
+  /* EVENT PANEL */
+  .event-panel {
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 8px 40px var(--shadow);
+    padding: 28px;
+    animation: slideUp .25s cubic-bezier(.4,0,.2,1);
+    display: none;
+  }
+  .event-panel.active { display: block; }
+
+  @keyframes slideUp {
+    from { opacity:0; transform: translateY(18px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .panel-date-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+  .panel-date-label span { color: var(--orange); }
+
+  .event-list {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 20px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .event-item {
+    display: flex; align-items: flex-start;
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 12px 14px;
+    gap: 12px;
+    border-left: 4px solid var(--orange);
+    animation: fadeIn .2s;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .event-item .e-time {
+    font-size: 12px; font-weight: 700;
+    color: var(--orange);
+    min-width: 44px;
+    padding-top: 2px;
+  }
+  .event-item .e-text {
+    flex: 1;
+    font-size: 14px; color: var(--green-dark);
+    font-weight: 500;
+    word-break: break-word;
+  }
+  .event-item .e-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    background: none; border: none; cursor: pointer;
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; transition: background .15s;
+  }
+  .btn-icon:hover { background: var(--orange-pale); }
+
+  /* FORM */
+  .add-form {
+    display: flex; flex-direction: column; gap: 12px;
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .form-group label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--green);
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--green-dark);
+    background: var(--white);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+    resize: none;
+    transition: border-color .15s;
+  }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--orange);
+  }
+  .form-group textarea { min-height: 68px; }
+
+  .btn-primary {
+    background: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: background .15s, transform .12s, box-shadow .15s;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(212,88,26,0.28);
+  }
+  .btn-primary:hover { background: var(--green); transform: translateY(-1px); box-shadow: 0 6px 22px rgba(62,74,28,0.22); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-whatsapp {
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 13px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: background .15s, transform .12s;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(37,211,102,0.28);
+  }
+  .btn-whatsapp:hover { background: #1ead55; transform: translateY(-1px); }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 28px; right: 24px;
+    background: var(--green-dark);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 13px 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    display: flex; align-items: center; gap: 10px;
+    z-index: 999;
+    opacity: 0; pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .3s, transform .3s;
+  }
+  .toast.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .toast.wpp { background: #25D366; }
+
+  /* DECORATIVE SHAPE (logo colors) */
+  .deco-shape {
+    position: fixed; top: 0; left: 0;
+    width: 160px; height: 160px;
+    z-index: 0; pointer-events: none;
+    opacity: .09;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .cal-cell { min-height: 52px; padding: 5px 4px 3px; }
+    .day-num { font-size: 13px; }
+    .event-dot { width: 5px; height: 5px; }
+    .logo-title { font-size: 26px; }
+    header { flex-direction: column; align-items: flex-start; }
+  }
+
+  .legend {
+    display: flex; gap: 18px; align-items: center; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--green-dark); font-weight: 500; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 4px; }
+
+  .edit-mode-notice {
+    font-size: 12px; color: var(--orange);
+    font-weight: 600; letter-spacing: .5px;
+    display: none;
+  }
+  .edit-mode-notice.show { display: block; }
+
+  .no-events {
+    text-align: center;
+    padding: 18px 0;
+    color: #aaa;
+    font-size: 14px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo-igl">IGL</div>
+    <div class="login-logo-title">Calendário</div>
+    <div class="login-divider"></div>
+    <div class="login-subtitle">🔒 Acesso restrito à equipe IGL<br>Digite a senha para continuar</div>
+    <div class="login-input-wrap">
+      <input type="password" id="pwInput" placeholder="Digite a senha..." maxlength="32" autocomplete="off">
+      <button class="toggle-pw" id="togglePw" tabindex="-1">👁️</button>
+    </div>
+    <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+    <button class="login-btn" id="loginBtn">Entrar</button>
+  </div>
+</div>
+
+<!-- Decorative SVG matching the uploaded logo -->
+<svg class="deco-shape" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="80" height="80" fill="#D4581A"/>
+  <rect x="80" width="80" height="80" fill="#5C6B2E"/>
+  <rect y="80" width="80" height="80" fill="#5C6B2E"/>
+  <rect x="80" y="80" width="80" height="80" fill="#D4581A"/>
+  <path d="M80 20 Q120 20 120 60 Q120 100 80 140 Q40 100 40 60 Q40 20 80 20Z" fill="#5C6B2E"/>
+</svg>
+
+<div class="app-wrapper">
+  <header>
+    <div class="logo-block">
+      <div class="logo-igl">IGL</div>
+      <div class="logo-title">Calendário</div>
+    </div>
+    <div class="nav-block">
+      <button class="nav-btn" id="prevMonth">&#8592;</button>
+      <select id="monthSelect"></select>
+      <div class="nav-dot"></div>
+      <input type="number" id="yearInput" min="2020" max="2040" step="1">
+      <button class="nav-btn" id="nextMonth">&#8594;</button>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Hoje</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(92,107,46,0.18); border:2px solid var(--green-light)"></div> Com eventos</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(92,107,46,0.07); border:2px solid var(--green)"></div> Selecionado</div>
+  </div>
+
+  <div class="cal-card">
+    <div class="cal-weekdays">
+      <span>Dom</span><span>Seg</span><span>Ter</span>
+      <span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- EVENT PANEL -->
+  <div class="event-panel" id="eventPanel">
+    <div class="panel-header">
+      <div class="panel-date-label" id="panelDateLabel">Selecione um dia</div>
+      <span class="edit-mode-notice" id="editNotice">✏️ Modo edição</span>
+    </div>
+    <div class="event-list" id="eventList"></div>
+
+    <div class="add-form">
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 110px">
+          <label>Horário</label>
+          <input type="time" id="eventTime" value="09:00">
+        </div>
+        <div class="form-group">
+          <label>Título do compromisso</label>
+          <input type="text" id="eventTitle" placeholder="Ex: Reunião com cliente...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descrição / Observações</label>
+        <textarea id="eventDesc" placeholder="Detalhes adicionais..."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" id="saveBtn">
+          <span>💾</span> <span id="saveBtnLabel">Salvar Compromisso</span>
+        </button>
+        <button class="btn-whatsapp" id="wppBtn">
+          <span>📲</span> Enviar WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── LOGIN ────────────────────────────────────────────────
+const CORRECT_PW = '@fin2026';
+const loginScreen = document.getElementById('loginScreen');
+const pwInput     = document.getElementById('pwInput');
+const loginBtn    = document.getElementById('loginBtn');
+const loginError  = document.getElementById('loginError');
+const togglePw    = document.getElementById('togglePw');
+
+// Check if already authenticated this session
+if (sessionStorage.getItem('igl_auth') === '1') {
+  loginScreen.style.display = 'none';
+}
+
+function tryLogin() {
+  if (pwInput.value === CORRECT_PW) {
+    sessionStorage.setItem('igl_auth', '1');
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transition = 'opacity .4s';
+    setTimeout(() => loginScreen.style.display = 'none', 400);
+  } else {
+    loginError.classList.add('show');
+    pwInput.classList.add('login-shake');
+    setTimeout(() => pwInput.classList.remove('login-shake'), 400);
+    pwInput.value = '';
+    pwInput.focus();
+  }
+}
+
+loginBtn.addEventListener('click', tryLogin);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+togglePw.addEventListener('click', () => {
+  pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
+  togglePw.textContent = pwInput.type === 'password' ? '👁️' : '🙈';
+});
+
+// ─── STATE ────────────────────────────────────────────────
+const PHONE = '5537998045563'; // 55 + DDI + número
+let events = JSON.parse(localStorage.getItem('igl_events') || '{}');
+let currentDate = new Date();
+let selectedDate = null;
+let editingId = null;
+
+const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// ─── ELEMENTS ─────────────────────────────────────────────
+const calGrid      = document.getElementById('calGrid');
+const monthSelect  = document.getElementById('monthSelect');
+const yearInput    = document.getElementById('yearInput');
+const eventPanel   = document.getElementById('eventPanel');
+const panelLabel   = document.getElementById('panelDateLabel');
+const eventList    = document.getElementById('eventList');
+const eventTitle   = document.getElementById('eventTitle');
+const eventTime    = document.getElementById('eventTime');
+const eventDesc    = document.getElementById('eventDesc');
+const saveBtn      = document.getElementById('saveBtn');
+const saveBtnLabel = document.getElementById('saveBtnLabel');
+const wppBtn       = document.getElementById('wppBtn');
+const editNotice   = document.getElementById('editNotice');
+const toast        = document.getElementById('toast');
+
+// ─── MONTH SELECT ─────────────────────────────────────────
+months.forEach((m, i) => {
+  const opt = document.createElement('option');
+  opt.value = i; opt.textContent = m;
+  monthSelect.appendChild(opt);
+});
+monthSelect.value = currentDate.getMonth();
+yearInput.value   = currentDate.getFullYear();
+
+monthSelect.addEventListener('change', () => {
+  currentDate.setMonth(+monthSelect.value);
+  renderCalendar();
+});
+yearInput.addEventListener('change', () => {
+  const y = parseInt(yearInput.value);
+  if (y >= 2020 && y <= 2040) { currentDate.setFullYear(y); renderCalendar(); }
+});
+document.getElementById('prevMonth').addEventListener('click', () => {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  monthSelect.value = currentDate.getMonth();
+  yearInput.value   = currentDate.getFullYear();
+  renderCalendar();
+});
+document.getElementById('nextMonth').addEventListener('click', () => {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  monthSelect.value = currentDate.getMonth();
+  yearInput.value   = currentDate.getFullYear();
+  renderCalendar();
+});
+
+// ─── SAVE EVENTS ──────────────────────────────────────────
+function saveToStorage() {
+  localStorage.setItem('igl_events', JSON.stringify(events));
+}
+
+// ─── DATE KEY ─────────────────────────────────────────────
+function dateKey(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+// ─── RENDER CALENDAR ──────────────────────────────────────
+function renderCalendar() {
+  calGrid.innerHTML = '';
+  const year  = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const today = new Date();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    calGrid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    const key = dateKey(year, month, d);
+    const dayEvents = events[key] || [];
+
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    if (isToday) cell.classList.add('today');
+    if (dayEvents.length > 0) cell.classList.add('has-event');
+    if (selectedDate === key) cell.classList.add('selected');
+
+    const numEl = document.createElement('div');
+    numEl.className = 'day-num';
+    numEl.textContent = d;
+    cell.appendChild(numEl);
+
+    if (dayEvents.length > 0) {
+      const dotsEl = document.createElement('div');
+      dotsEl.className = 'event-dots';
+      dayEvents.slice(0, 3).forEach((ev, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'event-dot' + (idx % 2 === 1 ? ' green' : '');
+        dotsEl.appendChild(dot);
+      });
+      cell.appendChild(dotsEl);
+
+      if (dayEvents.length > 0) {
+        const prev = document.createElement('div');
+        prev.className = 'event-preview';
+        prev.textContent = dayEvents[0].title;
+        cell.appendChild(prev);
+      }
+    }
+
+    cell.addEventListener('click', () => selectDay(key, d, month, year));
+    calGrid.appendChild(cell);
+  }
+}
+
+// ─── SELECT DAY ───────────────────────────────────────────
+function selectDay(key, d, month, year) {
+  selectedDate = key;
+  resetForm();
+  renderCalendar();
+  eventPanel.classList.add('active');
+  panelLabel.innerHTML = `<span>${d}</span> de ${months[month]}, ${year}`;
+  renderEventList(key);
+  eventPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─── RENDER EVENTS ────────────────────────────────────────
+function renderEventList(key) {
+  eventList.innerHTML = '';
+  const dayEvents = events[key] || [];
+  if (dayEvents.length === 0) {
+    eventList.innerHTML = '<div class="no-events">Nenhum compromisso neste dia. Adicione abaixo!</div>';
+    return;
+  }
+  dayEvents.sort((a,b) => a.time.localeCompare(b.time));
+  dayEvents.forEach(ev => {
+    const item = document.createElement('div');
+    item.className = 'event-item';
+    item.innerHTML = `
+      <div class="e-time">${ev.time || '--:--'}</div>
+      <div class="e-text"><strong>${ev.title}</strong>${ev.desc ? '<br><span style="font-weight:400;font-size:12px;opacity:.75">'+ev.desc+'</span>' : ''}</div>
+      <div class="e-actions">
+        <button class="btn-icon" title="Enviar WhatsApp" onclick="sendWhatsApp('${key}','${ev.id}')">📲</button>
+        <button class="btn-icon" title="Editar" onclick="editEvent('${key}','${ev.id}')">✏️</button>
+        <button class="btn-icon" title="Excluir" onclick="deleteEvent('${key}','${ev.id}')">🗑️</button>
+      </div>`;
+    eventList.appendChild(item);
+  });
+}
+
+// ─── ADD / EDIT EVENT ─────────────────────────────────────
+saveBtn.addEventListener('click', () => {
+  if (!selectedDate) return;
+  const title = eventTitle.value.trim();
+  if (!title) { showToast('⚠️ Informe o título do compromisso!'); return; }
+
+  if (!events[selectedDate]) events[selectedDate] = [];
+
+  if (editingId) {
+    const idx = events[selectedDate].findIndex(e => e.id === editingId);
+    if (idx >= 0) {
+      events[selectedDate][idx] = {
+        id: editingId,
+        time: eventTime.value,
+        title,
+        desc: eventDesc.value.trim()
+      };
+    }
+    showToast('✅ Compromisso atualizado!');
+    resetForm();
+  } else {
+    const ev = {
+      id: Date.now().toString(),
+      time: eventTime.value,
+      title,
+      desc: eventDesc.value.trim()
+    };
+    events[selectedDate].push(ev);
+    showToast('✅ Compromisso salvo!');
+    resetForm();
+  }
+
+  saveToStorage();
+  renderEventList(selectedDate);
+  renderCalendar();
+});
+
+// ─── EDIT ─────────────────────────────────────────────────
+function editEvent(key, id) {
+  const ev = (events[key] || []).find(e => e.id === id);
+  if (!ev) return;
+  editingId = id;
+  eventTime.value  = ev.time || '09:00';
+  eventTitle.value = ev.title;
+  eventDesc.value  = ev.desc || '';
+  saveBtnLabel.textContent = 'Atualizar Compromisso';
+  editNotice.classList.add('show');
+  eventTitle.focus();
+}
+
+// ─── DELETE ───────────────────────────────────────────────
+function deleteEvent(key, id) {
+  if (!confirm('Excluir este compromisso?')) return;
+  events[key] = (events[key] || []).filter(e => e.id !== id);
+  if (events[key].length === 0) delete events[key];
+  saveToStorage();
+  renderEventList(key);
+  renderCalendar();
+  showToast('🗑️ Compromisso removido.');
+}
+
+// ─── RESET FORM ───────────────────────────────────────────
+function resetForm() {
+  editingId = null;
+  eventTitle.value = '';
+  eventDesc.value  = '';
+  eventTime.value  = '09:00';
+  saveBtnLabel.textContent = 'Salvar Compromisso';
+  editNotice.classList.remove('show');
+}
+
+// ─── WHATSAPP ─────────────────────────────────────────────
+function buildWppMessage(key, id) {
+  const dayEvents = events[key] || [];
+  if (id) {
+    const ev = dayEvents.find(e => e.id === id);
+    if (!ev) return null;
+    return `📅 *IGL • Calendário*\n\n*Data:* ${formatDate(key)}\n*Horário:* ${ev.time || '--:--'}\n*Compromisso:* ${ev.title}${ev.desc ? '\n*Obs:* '+ev.desc : ''}\n\n_Enviado via IGL Calendário_`;
+  }
+  // All events of the day
+  const sorted = [...dayEvents].sort((a,b) => a.time.localeCompare(b.time));
+  let msg = `📅 *IGL • Calendário*\n\n*Data:* ${formatDate(key)}\n\n`;
+  sorted.forEach(ev => { msg += `🕐 ${ev.time || '--:--'} — *${ev.title}*${ev.desc ? '\n   '+ev.desc : ''}\n`; });
+  msg += `\n_Enviado via IGL Calendário_`;
+  return msg;
+}
+
+function sendWhatsApp(key, id) {
+  const msg = buildWppMessage(key, id);
+  if (!msg) return;
+  const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+  showToast('📲 Abrindo WhatsApp...', true);
+}
+
+wppBtn.addEventListener('click', () => {
+  if (!selectedDate) { showToast('⚠️ Selecione um dia primeiro!'); return; }
+  const dayEvents = events[selectedDate] || [];
+  if (dayEvents.length === 0) { showToast('⚠️ Nenhum compromisso neste dia!'); return; }
+  sendWhatsApp(selectedDate, null);
+});
+
+function formatDate(key) {
+  const [y, m, d] = key.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, isWpp = false) {
+  toast.textContent = msg;
+  toast.className = 'toast show' + (isWpp ? ' wpp' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.className = 'toast'; }, 2800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderCalendar();
+</script>
+</body>
+</html>
