@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGL • Calendário</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  const EMAILJS_PUBLIC_KEY  = 'COLE_SUA_PUBLIC_KEY';
+  const EMAILJS_SERVICE_ID  = 'service_vbm1j7f';
+  const EMAILJS_TEMPLATE_ID = 'template_i0au6ar';
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+  function enviarEmailAuto(dataEvento, horario, titulo, responsavel, descricao, emails) {
+    if (!emails || emails.length === 0) return;
+    emails.forEach(email => {
+      if (!email.trim()) return;
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: email.trim(), data_evento: dataEvento,
+        horario: horario||'—', titulo, responsavel: responsavel||'—', descricao: descricao||'—'
+      }).then(()=>console.log('✅ E-mail: '+email)).catch(err=>console.error('❌',err));
+    });
+  }
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --or:#D4581A;--or2:#E8763A;--orp:#F5C4A2;
+  --gr:#5C6B2E;--grd:#3E4A1C;--grl:#7A8C3A;
+  --cr:#F2EDE3;--cr2:#EAE4D8;--wh:#FFFFFF;
+  --tx:#2A2A2A;--mu:#888;
+  --sh:rgba(62,74,28,.14);--r:20px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cr);min-height:100vh;color:var(--tx);}
+
+/* LOGIN */
+#ls{position:fixed;inset:0;z-index:9999;background:var(--grd);display:flex;align-items:center;justify-content:center;}
+#ls::before{content:'';position:absolute;top:-140px;right:-140px;width:500px;height:500px;background:radial-gradient(circle,rgba(212,88,26,.25) 0%,transparent 65%);pointer-events:none;}
+.lc{background:#fff;border-radius:28px;padding:50px 42px 42px;width:100%;max-width:400px;text-align:center;box-shadow:0 28px 80px rgba(0,0,0,.3);position:relative;z-index:1;animation:popIn .4s cubic-bezier(.4,0,.2,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.le{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:var(--gr);font-weight:700;margin-bottom:6px;}
+.lt{font-family:'Fraunces',serif;font-size:38px;font-weight:900;color:var(--or);line-height:1;margin-bottom:24px;}
+.lf{position:relative;margin-bottom:12px;}
+.lf input{width:100%;padding:14px 48px 14px 18px;border:2px solid #eee;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--tx);background:#fafafa;outline:none;transition:border-color .18s;letter-spacing:1px;}
+.lf input:focus{border-color:var(--or);background:#fff;}
+.lf button{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#bbb;}
+.lerr{font-size:13px;color:#e53935;font-weight:600;min-height:20px;margin-bottom:10px;opacity:0;transition:opacity .2s;}
+.lerr.show{opacity:1;}
+.lbtn{width:100%;background:var(--or);color:#fff;border:none;border-radius:50px;padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s,transform .12s;box-shadow:0 6px 22px rgba(212,88,26,.3);}
+.lbtn:hover{background:var(--gr);transform:translateY(-1px);}
+.lshake{animation:shake .35s;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* APP */
+.app{display:grid;grid-template-columns:1fr 400px;grid-template-rows:auto 1fr;min-height:100vh;max-width:1400px;margin:0 auto;padding:24px 20px;gap:20px;}
+header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.brand{display:flex;align-items:baseline;gap:10px;}
+.bi{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:var(--gr);font-weight:700;}
+.bs{width:1px;height:26px;background:var(--orp);}
+.bn{font-family:'Fraunces',serif;font-size:34px;font-weight:900;color:var(--or);line-height:1;}
+.nav{display:flex;align-items:center;gap:8px;background:#fff;border-radius:50px;padding:8px 16px;box-shadow:0 4px 18px var(--sh);}
+.nb{width:30px;height:30px;border-radius:50%;border:none;background:var(--or);color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s;}
+.nb:hover{background:var(--gr);transform:scale(1.1);}
+.ns{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--grd);background:transparent;border:none;outline:none;cursor:pointer;}
+.ny{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--grd);background:transparent;border:none;outline:none;width:55px;text-align:center;}
+.nd{width:5px;height:5px;background:var(--orp);border-radius:50%;}
+
+/* CALENDAR */
+.cal-wrap{display:flex;flex-direction:column;gap:10px;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--grd);font-weight:500;}
+.ld{width:10px;height:10px;border-radius:3px;}
+.cal-card{background:#fff;border-radius:var(--r);box-shadow:0 8px 40px var(--sh);overflow:hidden;}
+.wdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--grd);padding:10px 6px 7px;}
+.wdays span{text-align:center;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orp);}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px;background:var(--cr);}
+.cc{border-radius:12px;padding:7px 7px 5px;background:#fff;cursor:pointer;min-height:86px;display:flex;flex-direction:column;gap:2px;border:2px solid transparent;transition:all .17s;position:relative;}
+.cc:hover{background:#fff8f3;border-color:var(--orp);transform:translateY(-2px);box-shadow:0 6px 16px rgba(212,88,26,.12);z-index:2;}
+.cc.empty{background:transparent;cursor:default;pointer-events:none;}
+.cc.today{background:var(--or);border-color:var(--or);}
+.cc.today .dn{color:#fff;}
+.cc.today:hover{background:var(--or2);}
+.cc.has-ev{border-color:var(--grl);}
+.cc.soon{border-color:var(--or);background:#fff8f3;}
+.cc.sel{border-color:var(--gr);background:rgba(92,107,46,.07);box-shadow:0 0 0 3px rgba(92,107,46,.12);}
+.dn{font-size:14px;font-weight:700;color:var(--grd);line-height:1;}
+.da{font-size:8px;font-weight:700;color:var(--or);letter-spacing:.5px;margin-top:1px;}
+.chip{font-size:8px;font-weight:600;color:#fff;background:var(--or);border-radius:4px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.3;}
+.chip.g{background:var(--gr);}
+.chip.more{background:var(--cr2);color:var(--grd);}
+
+/* SIDE */
+.side{display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:calc(100vh - 110px);}
+.card{background:#fff;border-radius:var(--r);box-shadow:0 4px 20px var(--sh);padding:20px;}
+.ct{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--grd);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+/* EMAIL CARD */
+.etags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.etag{display:flex;align-items:center;gap:4px;background:var(--cr);border-radius:50px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--grd);}
+.etag button{background:none;border:none;cursor:pointer;color:var(--or);font-size:13px;line-height:1;}
+.erow{display:flex;gap:7px;}
+.erow input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:2px solid #eee;border-radius:10px;padding:8px 11px;outline:none;color:var(--tx);transition:border-color .15s;}
+.erow input:focus{border-color:var(--or);}
+.eadd{background:var(--or);color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px;transition:background .15s;}
+.eadd:hover{background:var(--gr);}
+.ehint{font-size:10px;color:var(--mu);margin-top:7px;}
+
+/* ALERT CARD */
+.alert-card{background:linear-gradient(135deg,#fff8f3,#fff);border-radius:var(--r);border:2px solid var(--orp);padding:16px 18px;display:none;}
+.alert-card.on{display:block;animation:slideUp .25s;}
+.at{font-size:12px;font-weight:700;color:var(--or);margin-bottom:8px;}
+.ai{font-size:11px;color:var(--grd);padding:5px 0;border-bottom:1px solid var(--cr2);}
+.ai:last-child{border-bottom:none;}
+.ai strong{color:var(--or);}
+
+/* EVENT CARD */
+.ecard{background:#fff;border-radius:var(--r);box-shadow:0 4px 20px var(--sh);padding:20px;display:none;}
+.ecard.on{display:block;animation:slideUp .25s cubic-bezier(.4,0,.2,1);}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.edl{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--grd);margin-bottom:14px;}
+.edl span{color:var(--or);}
+.evlist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;max-height:220px;overflow-y:auto;}
+.evi{background:var(--cr);border-radius:11px;padding:11px 13px;border-left:4px solid var(--or);display:flex;gap:9px;align-items:flex-start;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.eit{font-size:11px;font-weight:700;color:var(--or);min-width:38px;padding-top:2px;}
+.eib{flex:1;}
+.eitn{font-size:13px;font-weight:700;color:var(--grd);}
+.eirp{font-size:10px;color:var(--gr);font-weight:600;margin-top:1px;}
+.eidc{font-size:10px;color:var(--mu);margin-top:1px;}
+.eia{display:flex;flex-direction:column;gap:3px;}
+.bico{background:none;border:none;cursor:pointer;width:25px;height:25px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;transition:background .15s;}
+.bico:hover{background:var(--orp);}
+.noev{text-align:center;padding:12px;color:var(--mu);font-size:12px;font-style:italic;}
+
+/* FORM */
+.eform{background:var(--cr);border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:9px;}
+.frow{display:flex;gap:7px;}
+.fg{display:flex;flex-direction:column;gap:3px;flex:1;}
+.fg label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gr);}
+.fg input,.fg textarea{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--tx);background:#fff;border:2px solid transparent;border-radius:9px;padding:8px 10px;outline:none;resize:none;transition:border-color .15s;}
+.fg input:focus,.fg textarea:focus{border-color:var(--or);}
+.fg textarea{min-height:52px;}
+.brow{display:flex;gap:7px;flex-wrap:wrap;}
+.bpri{flex:1;background:var(--or);color:#fff;border:none;border-radius:50px;padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s,transform .12s;box-shadow:0 4px 14px rgba(212,88,26,.25);display:flex;align-items:center;justify-content:center;gap:5px;}
+.bpri:hover{background:var(--gr);transform:translateY(-1px);}
+.bwpp{background:#25D366;color:#fff;border:none;border-radius:50px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;box-shadow:0 4px 14px rgba(37,211,102,.22);display:flex;align-items:center;gap:5px;}
+.bwpp:hover{background:#1ead55;}
+.en{font-size:10px;color:var(--or);font-weight:700;display:none;}
+.en.show{display:block;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:18px;z-index:9998;background:var(--grd);color:#fff;font-size:12px;font-weight:600;border-radius:50px;padding:11px 20px;box-shadow:0 8px 28px rgba(0,0,0,.2);display:flex;align-items:center;gap:7px;opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .3s,transform .3s;}
+.toast.show{opacity:1;pointer-events:auto;transform:translateY(0);}
+.toast.wpp{background:#25D366;}
+.toast.email{background:var(--or);}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr;}
+  .side{max-height:none;}
+  .cc{min-height:60px;padding:5px 4px;}
+  .dn{font-size:12px;}
+  .chip{font-size:7px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="lc">
+    <div class="le">IGL</div>
+    <div class="lt">Calendário</div>
+    <div class="lf">
+      <input type="password" id="pwI" placeholder="Digite a senha..." maxlength="32" autocomplete="off">
+      <button id="tpw" tabindex="-1">👁️</button>
+    </div>
+    <div class="lerr" id="lerr">Senha incorreta. Tente novamente.</div>
+    <button class="lbtn" id="lbtn">Entrar →</button>
+  </div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="bi">IGL</span>
+      <div class="bs"></div>
+      <span class="bn">Calendário</span>
+    </div>
+    <div class="nav">
+      <button class="nb" id="prev">&#8592;</button>
+      <select class="ns" id="msel"></select>
+      <div class="nd"></div>
+      <input type="number" class="ny" id="yinp" min="2020" max="2040">
+      <button class="nb" id="next">&#8594;</button>
+    </div>
+  </header>
+
+  <!-- CALENDAR AREA -->
+  <div class="cal-wrap">
+    <div class="legend">
+      <div class="leg"><div class="ld" style="background:var(--or)"></div>Hoje</div>
+      <div class="leg"><div class="ld" style="background:rgba(92,107,46,.18);border:2px solid var(--grl)"></div>Com compromisso</div>
+      <div class="leg"><div class="ld" style="background:#fff8f3;border:2px solid var(--or)"></div>⚠️ Vence em até 2 dias</div>
+    </div>
+    <div class="cal-card">
+      <div class="wdays">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+      <div class="cgrid" id="cgrid"></div>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side">
+
+    <!-- ALERTS -->
+    <div class="alert-card" id="acard">
+      <div class="at">⚠️ Compromissos nos próximos 2 dias</div>
+      <div id="alist"></div>
+    </div>
+
+    <!-- EMAIL CONFIG -->
+    <div class="card">
+      <div class="ct">📧 E-mails para notificação</div>
+      <div class="etags" id="etags"></div>
+      <div class="erow">
+        <input type="email" id="einp" placeholder="Digite um e-mail...">
+        <button class="eadd" id="eadd">+</button>
+      </div>
+      <div class="ehint">Todo compromisso salvo ou editado enviará e-mail automaticamente para todos os endereços acima.</div>
+    </div>
+
+    <!-- EVENT CARD -->
+    <div class="ecard" id="ecard">
+      <div class="edl" id="edl">Selecione um dia</div>
+      <div class="evlist" id="evlist"></div>
+      <div class="eform">
+        <div class="en" id="en">✏️ Modo edição ativo</div>
+        <div class="frow">
+          <div class="fg" style="flex:0 0 95px">
+            <label>Horário</label>
+            <input type="time" id="etime" value="09:00">
+          </div>
+          <div class="fg">
+            <label>Título *</label>
+            <input type="text" id="etitle" placeholder="Ex: Reunião com cliente">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Responsável (opcional)</label>
+          <input type="text" id="eresp" placeholder="Nome do responsável...">
+        </div>
+        <div class="fg">
+          <label>Descrição / Observações</label>
+          <textarea id="edesc" placeholder="Detalhes adicionais..."></textarea>
+        </div>
+        <div class="brow">
+          <button class="bpri" id="sbtn"><span>💾</span><span id="sbl">Salvar</span></button>
+          <button class="bwpp" id="wbtn">📲 WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// LOGIN
+const PASS='@fin2026';
+const ls=document.getElementById('ls'),pwI=document.getElementById('pwI'),lbtn=document.getElementById('lbtn'),lerr=document.getElementById('lerr'),tpw=document.getElementById('tpw');
+if(sessionStorage.getItem('igl_a')==='1') ls.style.display='none';
+function tryL(){if(pwI.value===PASS){sessionStorage.setItem('igl_a','1');ls.style.opacity='0';ls.style.transition='opacity .4s';setTimeout(()=>ls.style.display='none',400);}else{lerr.classList.add('show');pwI.classList.add('lshake');setTimeout(()=>pwI.classList.remove('lshake'),400);pwI.value='';pwI.focus();}}
+lbtn.addEventListener('click',tryL);
+pwI.addEventListener('keydown',e=>{if(e.key==='Enter')tryL();});
+tpw.addEventListener('click',()=>{pwI.type=pwI.type==='password'?'text':'password';tpw.textContent=pwI.type==='password'?'👁️':'🙈';});
+
+// STATE
+let evs=JSON.parse(localStorage.getItem('igl_ev')||'{}');
+let ems=JSON.parse(localStorage.getItem('igl_em')||'[]');
+let cur=new Date(),selD=null,editId=null;
+const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// ELEMENTS
+const cgrid=document.getElementById('cgrid'),msel=document.getElementById('msel'),yinp=document.getElementById('yinp');
+const ecard=document.getElementById('ecard'),edl=document.getElementById('edl'),evlist=document.getElementById('evlist');
+const etitle=document.getElementById('etitle'),etime=document.getElementById('etime'),eresp=document.getElementById('eresp'),edesc=document.getElementById('edesc');
+const sbtn=document.getElementById('sbtn'),sbl=document.getElementById('sbl'),wbtn=document.getElementById('wbtn'),en=document.getElementById('en');
+const toast=document.getElementById('toast'),einp=document.getElementById('einp'),etags=document.getElementById('etags');
+const acard=document.getElementById('acard'),alist=document.getElementById('alist');
+
+// MONTH NAV
+MN.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m;msel.appendChild(o);});
+msel.value=cur.getMonth(); yinp.value=cur.getFullYear();
+msel.addEventListener('change',()=>{cur.setMonth(+msel.value);renderCal();});
+yinp.addEventListener('change',()=>{const y=parseInt(yinp.value);if(y>=2020&&y<=2040){cur.setFullYear(y);renderCal();}});
+document.getElementById('prev').addEventListener('click',()=>{cur.setMonth(cur.getMonth()-1);msel.value=cur.getMonth();yinp.value=cur.getFullYear();renderCal();});
+document.getElementById('next').addEventListener('click',()=>{cur.setMonth(cur.getMonth()+1);msel.value=cur.getMonth();yinp.value=cur.getFullYear();renderCal();});
+
+// STORAGE
+function saveEvs(){localStorage.setItem('igl_ev',JSON.stringify(evs));}
+function saveEms(){localStorage.setItem('igl_em',JSON.stringify(ems));}
+function dk(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function fd(k){const[y,m,d]=k.split('-');return `${d}/${m}/${y}`;}
+
+// EMAIL TAGS
+function renderTags(){
+  etags.innerHTML='';
+  ems.forEach((em,i)=>{
+    const t=document.createElement('div');t.className='etag';
+    t.innerHTML=`<span>${em}</span><button onclick="remEm(${i})">×</button>`;
+    etags.appendChild(t);
+  });
+}
+function remEm(i){ems.splice(i,1);saveEms();renderTags();}
+document.getElementById('eadd').addEventListener('click',addEm);
+einp.addEventListener('keydown',e=>{if(e.key==='Enter')addEm();});
+function addEm(){
+  const v=einp.value.trim();
+  if(!v||!v.includes('@')){showToast('⚠️ E-mail inválido!');return;}
+  if(ems.includes(v)){showToast('⚠️ Já adicionado!');return;}
+  ems.push(v);saveEms();renderTags();einp.value='';showToast('✅ E-mail adicionado!');
+}
+renderTags();
+
+// ALERTS
+function checkAlerts(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const up=[];
+  for(let d=0;d<=2;d++){
+    const dt=new Date(today);dt.setDate(dt.getDate()+d);
+    const k=dk(dt.getFullYear(),dt.getMonth(),dt.getDate());
+    (evs[k]||[]).forEach(ev=>up.push({...ev,k,diff:d}));
+  }
+  if(up.length>0){
+    acard.classList.add('on');alist.innerHTML='';
+    up.forEach(ev=>{
+      const div=document.createElement('div');div.className='ai';
+      const q=ev.diff===0?'Hoje':ev.diff===1?'Amanhã':'Em 2 dias';
+      div.innerHTML=`<strong>${q}</strong> • ${fd(ev.k)} ${ev.time||''} — ${ev.title}${ev.responsavel?' ('+ev.responsavel+')':''}`;
+      alist.appendChild(div);
+    });
+  }else{acard.classList.remove('on');}
+}
+
+// RENDER CALENDAR
+function renderCal(){
+  cgrid.innerHTML='';
+  const y=cur.getFullYear(),m=cur.getMonth();
+  const today=new Date();today.setHours(0,0,0,0);
+  const fd1=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate();
+  for(let i=0;i<fd1;i++){const e=document.createElement('div');e.className='cc empty';cgrid.appendChild(e);}
+  for(let d=1;d<=dim;d++){
+    const cell=document.createElement('div');cell.className='cc';
+    const k=dk(y,m,d),de=evs[k]||[];
+    const dt=new Date(y,m,d);dt.setHours(0,0,0,0);
+    const diff=Math.round((dt-today)/(864e5));
+    const isT=diff===0,isSoon=diff>0&&diff<=2&&de.length>0;
+    if(isT)cell.classList.add('today');
+    else if(isSoon)cell.classList.add('soon');
+    if(de.length>0)cell.classList.add('has-ev');
+    if(selD===k)cell.classList.add('sel');
+    const dn=document.createElement('div');dn.className='dn';dn.textContent=d;cell.appendChild(dn);
+    if(isSoon&&!isT){const da=document.createElement('div');da.className='da';da.textContent='⚠️ EM BREVE';cell.appendChild(da);}
+    de.slice(0,3).forEach((ev,i)=>{
+      const ch=document.createElement('div');ch.className='chip'+(i%2===1?' g':'');
+      ch.textContent=(ev.time?ev.time+' ':'')+ev.title;cell.appendChild(ch);
+    });
+    if(de.length>3){const mo=document.createElement('div');mo.className='chip more';mo.textContent=`+${de.length-3} mais`;cell.appendChild(mo);}
+    cell.addEventListener('click',()=>selDay(k,d,m,y));
+    cgrid.appendChild(cell);
+  }
+  checkAlerts();
+}
+
+// SELECT DAY
+function selDay(k,d,m,y){
+  selD=k;resetForm();renderCal();
+  ecard.classList.add('on');
+  edl.innerHTML=`<span>${d}</span> de ${MN[m]}, ${y}`;
+  renderEvList(k);
+  ecard.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// RENDER EVENT LIST
+function renderEvList(k){
+  evlist.innerHTML='';
+  const de=evs[k]||[];
+  if(de.length===0){evlist.innerHTML='<div class="noev">Nenhum compromisso. Adicione abaixo!</div>';return;}
+  de.sort((a,b)=>a.time.localeCompare(b.time));
+  de.forEach(ev=>{
+    const item=document.createElement('div');item.className='evi';
+    item.innerHTML=`
+      <div class="eit">${ev.time||'--:--'}</div>
+      <div class="eib">
+        <div class="eitn">${ev.title}</div>
+        ${ev.responsavel?`<div class="eirp">👤 ${ev.responsavel}</div>`:''}
+        ${ev.desc?`<div class="eidc">${ev.desc}</div>`:''}
+      </div>
+      <div class="eia">
+        <button class="bico" title="WhatsApp" onclick="sWpp('${k}','${ev.id}')">📲</button>
+        <button class="bico" title="Editar" onclick="editEv('${k}','${ev.id}')">✏️</button>
+        <button class="bico" title="Excluir" onclick="delEv('${k}','${ev.id}')">🗑️</button>
+      </div>`;
+    evlist.appendChild(item);
+  });
+}
+
+// SAVE
+sbtn.addEventListener('click',()=>{
+  if(!selD)return;
+  const title=etitle.value.trim();
+  if(!title){showToast('⚠️ Informe o título!');return;}
+  if(!evs[selD])evs[selD]=[];
+  const edata={id:editId||Date.now().toString(),time:etime.value,title,responsavel:eresp.value.trim(),desc:edesc.value.trim()};
+  if(editId){const idx=evs[selD].findIndex(e=>e.id===editId);if(idx>=0)evs[selD][idx]=edata;showToast('✅ Atualizado! Enviando e-mail...','email');}
+  else{evs[selD].push(edata);showToast('✅ Salvo! Enviando e-mail...','email');}
+  if(ems.length>0) enviarEmailAuto(fd(selD),edata.time,edata.title,edata.responsavel,edata.desc,ems);
+  saveEvs();resetForm();renderEvList(selD);renderCal();
+});
+
+function editEv(k,id){
+  const ev=(evs[k]||[]).find(e=>e.id===id);if(!ev)return;
+  editId=id;etime.value=ev.time||'09:00';etitle.value=ev.title;eresp.value=ev.responsavel||'';edesc.value=ev.desc||'';
+  sbl.textContent='Atualizar';en.classList.add('show');etitle.focus();
+}
+function delEv(k,id){
+  if(!confirm('Excluir este compromisso?'))return;
+  evs[k]=(evs[k]||[]).filter(e=>e.id!==id);
+  if(evs[k].length===0)delete evs[k];
+  saveEvs();renderEvList(k);renderCal();showToast('🗑️ Compromisso removido.');
+}
+function resetForm(){editId=null;etitle.value='';edesc.value='';eresp.value='';etime.value='09:00';sbl.textContent='Salvar';en.classList.remove('show');}
+
+// WHATSAPP
+function buildMsg(k,id){
+  const de=evs[k]||[];
+  if(id){const ev=de.find(e=>e.id===id);if(!ev)return null;return `📅 *IGL • Calendário*\n\n*Data:* ${fd(k)}\n*Horário:* ${ev.time||'--:--'}\n*Compromisso:* ${ev.title}${ev.responsavel?'\n*Responsável:* '+ev.responsavel:''}${ev.desc?'\n*Obs:* '+ev.desc:''}\n\n_Enviado via IGL Calendário_`;}
+  const s=[...de].sort((a,b)=>a.time.localeCompare(b.time));
+  let msg=`📅 *IGL • Calendário*\n\n*Data:* ${fd(k)}\n\n`;
+  s.forEach(ev=>{msg+=`🕐 ${ev.time||'--:--'} — *${ev.title}*${ev.responsavel?' ('+ev.responsavel+')':''}${ev.desc?'\n   '+ev.desc:''}\n`;});
+  return msg+'\n_Enviado via IGL Calendário_';
+}
+function sWpp(k,id){const msg=buildMsg(k,id);if(!msg)return;window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');showToast('📲 Abrindo WhatsApp...','wpp');}
+wbtn.addEventListener('click',()=>{if(!selD){showToast('⚠️ Selecione um dia!');return;}const de=evs[selD]||[];if(de.length===0){showToast('⚠️ Nenhum compromisso!');return;}sWpp(selD,null);});
+
+// TOAST
+let tt;
+function showToast(msg,type=''){toast.textContent=msg;toast.className='toast show'+(type?' '+type:'');clearTimeout(tt);tt=setTimeout(()=>{toast.className='toast';},3200);}
+
+// INIT
+renderCal();
+</script>
+</body>
+</html>
