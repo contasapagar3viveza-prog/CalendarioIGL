@@ -6,11 +6,41 @@
 <title>IGL • Calendário</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const EMAILJS_PUBLIC_KEY  = 'ysAnB9uIm9xSBpNvM';
   const EMAILJS_SERVICE_ID  = 'service_vbm1j7f';
   const EMAILJS_TEMPLATE_ID = 'template_i0au6ar';
   emailjs.init(EMAILJS_PUBLIC_KEY);
+
+const supabaseUrl = 'https://fogfvlfbvrzbbdyqpddd.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZ2Z2bGZidnJ6YmJkeXFwZGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjYzNzYsImV4cCI6MjA5NDEwMjM3Nn0.3xmf8ctCLsyhssJ5Z7rqTTxPXsLJzusRVt_TM8O1cjQ';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+async function salvarEvento(ev, data) {
+  const { error } = await supabase.from('eventos').upsert({
+    id: ev.id, data: data, time: ev.time || '',
+    title: ev.title || '', responsavel: ev.responsavel || '', desc: ev.desc || ''
+  }, { onConflict: 'id' });
+  if (error) console.error('Supabase salvar:', error);
+}
+
+async function deletarEvento(id) {
+  const { error } = await supabase.from('eventos').delete().eq('id', id);
+  if (error) console.error('Supabase deletar:', error);
+}
+
+async function carregarEventosSupabase() {
+  const { data, error } = await supabase.from('eventos').select('*');
+  if (error) { console.error('Supabase carregar:', error); return {}; }
+  const agrupados = {};
+  (data || []).forEach(ev => {
+    if (!agrupados[ev.data]) agrupados[ev.data] = [];
+    agrupados[ev.data].push({ id: ev.id, time: ev.time, title: ev.title, responsavel: ev.responsavel, desc: ev.desc });
+  });
+  return agrupados;
+}
+
   function enviarEmails(dataEvento, horario, titulo, responsavel, descricao, emails) {
     if (!emails || emails.length === 0) return;
     emails.forEach(email => {
@@ -581,7 +611,7 @@ function tryLogin() {
 }
 
 // ─── STATE ────────────────────────────────────────────────
-let events    = JSON.parse(localStorage.getItem('igl_events') || '{}');
+let events    = {};
 let emailList = JSON.parse(localStorage.getItem('igl_emails') || '[]');
 let curDate   = new Date();
 let selDate   = null;
@@ -621,7 +651,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ─── STORAGE ──────────────────────────────────────────────
-function saveEvents() { localStorage.setItem('igl_events', JSON.stringify(events)); }
 function saveEmails() { localStorage.setItem('igl_emails', JSON.stringify(emailList)); }
 function dateKey(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
 function fmtDate(k) { const [y,m,d]=k.split('-'); return `${d}/${m}/${y}`; }
@@ -783,7 +812,7 @@ function renderEvList(k) {
 }
 
 // ─── SAVE EVENT ───────────────────────────────────────────
-document.getElementById('btn-save').addEventListener('click', () => {
+document.getElementById('btn-save').addEventListener('click', async () => {
   if (!selDate) { showToast('⚠️ Selecione um dia primeiro!', 'err'); return; }
   const title = document.getElementById('f-title').value.trim();
   if (!title) { showToast('⚠️ Informe o título!', 'err'); return; }
@@ -803,8 +832,10 @@ document.getElementById('btn-save').addEventListener('click', () => {
     events[selDate].push(edata);
     showToast('✅ Compromisso salvo!', 'email');
   }
+  // Salva no Supabase
+  await salvarEvento(edata, selDate);
   if (emailList.length > 0) enviarEmails(fmtDate(selDate), edata.time, edata.title, edata.responsavel, edata.desc, emailList);
-  saveEvents(); resetForm(); renderEvList(selDate); renderCalendar(); renderAlerts();
+  resetForm(); renderEvList(selDate); renderCalendar(); renderAlerts();
 });
 
 function editEvent(k, id) {
@@ -818,11 +849,12 @@ function editEvent(k, id) {
   document.getElementById('edit-notice').classList.add('show');
   document.getElementById('f-title').focus();
 }
-function deleteEvent(k, id) {
+async function deleteEvent(k, id) {
   if (!confirm('Excluir este compromisso?')) return;
   events[k] = (events[k] || []).filter(e => e.id !== id);
   if (events[k].length === 0) delete events[k];
-  saveEvents(); renderEvList(k); renderCalendar(); renderAlerts();
+  await deletarEvento(id);
+  renderEvList(k); renderCalendar(); renderAlerts();
   showToast('🗑️ Compromisso removido.');
 }
 function resetForm() {
@@ -871,8 +903,16 @@ function showToast(msg, type = '') {
 // ─── RENDER ALL ───────────────────────────────────────────
 function renderAll() { renderCalendar(); renderAlerts(); }
 
-// ─── INIT ─────────────────────────────────────────────────
-renderAll();
+// ─── INIT — carrega do Supabase ───────────────────────────
+async function init() {
+  showToast('⏳ Carregando compromissos...');
+  events = await carregarEventosSupabase();
+  renderAll();
+}
+init();
 </script>
 </body>
 </html>
+
+
+
