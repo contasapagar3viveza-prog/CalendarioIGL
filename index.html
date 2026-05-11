@@ -391,7 +391,7 @@ async function dbLoad() {
     events = {};
     (evData || []).forEach(ev => {
       if (!events[ev.data]) events[ev.data] = [];
-      events[ev.data].push({ id: ev.id, time: ev.time, title: ev.title, responsavel: ev.responsavel, desc: ev.desc });
+      events[ev.data].push({ id: ev.id, time: ev.time, title: ev.title, responsavel: ev.responsavel, desc: ev.descricao });
     });
   }
   // Load contacts
@@ -402,7 +402,7 @@ async function dbLoad() {
 
 async function dbSaveEvent(ev, data) {
   const { error } = await sb.from('eventos').upsert(
-    { id: ev.id, data, time: ev.time||'', title: ev.title||'', responsavel: ev.responsavel||'', desc: ev.desc||'' },
+    { id: ev.id, data, time: ev.time||'', title: ev.title||'', responsavel: ev.responsavel||'', descricao: ev.desc||'' },
     { onConflict: 'id' }
   );
   if (error) { console.error('Save event:', error); showToast('❌ Erro ao salvar!', 'err'); }
