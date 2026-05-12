@@ -395,9 +395,9 @@ async function dbLoad() {
     });
   }
   // Load contacts
-  const { data: ctData, error: ctErr } = await sb.from('contatos').select('*');
-  if (ctErr) { console.error('Load contacts:', ctErr); }
-  else { contacts = (ctData || []).map(c => ({ id: c.id, type: c.type, value: c.value })); }
+  const { data: ctData, error: ctErr } = await sb.from('contatos').select('*').order('created_at', { ascending: true });
+  if (ctErr) { console.error('Load contacts:', ctErr); contacts = []; }
+  else { contacts = (ctData || []).map(c => ({ id: c.id, type: c.type || 'email', value: c.value })); }
 }
 
 async function dbSaveEvent(ev, data) {
@@ -430,13 +430,22 @@ async function dbDeleteContact(id) {
 function getEmails() { return contacts.filter(c => c.type === 'email').map(c => c.value); }
 function sendEmails(dataEvento, horario, titulo, responsavel, descricao) {
   const emails = getEmails();
-  if (!emails.length) return;
+  if (!emails.length) { console.log('Nenhum e-mail cadastrado para envio.'); return; }
   emails.forEach(email => {
     emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
-      to_email: email, data_evento: dataEvento,
-      horario: horario||'—', titulo,
-      responsavel: responsavel||'—', descricao: descricao||'—'
-    }).then(() => console.log('✅ Email:', email)).catch(e => console.error('❌ Email:', e));
+      to_email: email,
+      data_evento: dataEvento,
+      horario: horario || '—',
+      titulo: titulo,
+      responsavel: responsavel || '—',
+      descricao: descricao || '—'
+    }).then(() => {
+      console.log('✅ E-mail enviado para:', email);
+      showToast('📧 E-mail enviado!', 'email');
+    }).catch(e => {
+      console.error('❌ Erro ao enviar e-mail:', e);
+      showToast('❌ Erro ao enviar e-mail!', 'err');
+    });
   });
 }
 
@@ -473,27 +482,59 @@ document.getElementById('ct-add').addEventListener('click', addContact);
 document.getElementById('ct-val').addEventListener('keydown', e => { if (e.key === 'Enter') addContact(); });
 
 async function addContact() {
-  const type = 'email';
-  const val  = document.getElementById('ct-val').value.trim();
+  const val = document.getElementById('ct-val').value.trim();
   if (!val) { showToast('⚠️ Digite um e-mail!', 'err'); return; }
-  if (!val.includes('@')) { showToast('⚠️ E-mail inválido!', 'err'); return; }
-  if (contacts.find(c => c.value === val)) { showToast('⚠️ Já cadastrado!', 'err'); return; }
+  if (!val.includes('@') || !val.includes('.')) { showToast('⚠️ E-mail inválido!', 'err'); return; }
+  if (contacts.find(c => c.value.toLowerCase() === val.toLowerCase())) { showToast('⚠️ E-mail já cadastrado!', 'err'); return; }
+  document.getElementById('ct-add').disabled = true;
   showToast('⏳ Salvando...');
-  const saved = await dbSaveContact({ type, value: val });
-  if (saved) {
-    contacts.push({ id: saved.id, type: saved.type, value: saved.value });
+  try {
+    const { data, error } = await sb.from('contatos').insert({ type: 'email', value: val }).select().single();
+    if (error) throw error;
+    contacts.push({ id: data.id, type: 'email', value: data.value });
     renderContacts();
     document.getElementById('ct-val').value = '';
-    showToast('✅ Contato salvo!');
+    showToast('✅ E-mail salvo com sucesso!');
+  } catch(e) {
+    console.error('Erro ao salvar contato:', e);
+    showToast('❌ Erro ao salvar! Verifique o Supabase.', 'err');
+  } finally {
+    document.getElementById('ct-add').disabled = false;
   }
 }
 
 async function removeContact(id) {
-  if (!confirm('Excluir este contato?')) return;
-  await dbDeleteContact(id);
-  contacts = contacts.filter(c => c.id !== id);
-  renderContacts();
-  showToast('🗑️ Contato removido.');
+  if (!confirm('Excluir este e-mail?')) return;
+  try {
+    const { error } = await sb.from('contatos').delete().eq('id', id);
+    if (error) throw error;
+    contacts = contacts.filter(c => String(c.id) !== String(id));
+    renderContacts();
+    showToast('🗑️ E-mail removido.');
+  } catch(e) {
+    console.error('Erro ao remover:', e);
+    showToast('❌ Erro ao remover!', 'err');
+  }
+}
+
+// Edit contact
+async function editContact(id) {
+  const ct = contacts.find(c => String(c.id) === String(id));
+  if (!ct) return;
+  const newVal = prompt('Editar e-mail:', ct.value);
+  if (!newVal || newVal.trim() === ct.value) return;
+  const val = newVal.trim();
+  if (!val.includes('@') || !val.includes('.')) { showToast('⚠️ E-mail inválido!', 'err'); return; }
+  try {
+    const { error } = await sb.from('contatos').update({ value: val }).eq('id', id);
+    if (error) throw error;
+    contacts = contacts.map(c => String(c.id) === String(id) ? { ...c, value: val } : c);
+    renderContacts();
+    showToast('✅ E-mail atualizado!');
+  } catch(e) {
+    console.error('Erro ao editar:', e);
+    showToast('❌ Erro ao editar!', 'err');
+  }
 }
 
 // ══════════════════════════════════════════════
