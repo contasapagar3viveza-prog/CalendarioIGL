@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>IGL • Calendário</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -336,6 +337,10 @@ const PASS             = '@fin2026';
 const SUPA_URL         = 'https://fogfvlfbvrzbbdyqpddd.supabase.co';
 const SUPA_KEY         = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZ2Z2bGZidnJ6YmJkeXFwZGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjYzNzYsImV4cCI6MjA5NDEwMjM3Nn0.3xmf8ctCLsyhssJ5Z7rqTTxPXsLJzusRVt_TM8O1cjQ';
 
+const EMAILJS_PK  = 'ysAnB9uIm9xSBpNvM';
+const EMAILJS_SVC = 'service_vbm1j7f';
+const EMAILJS_TPL = 'template_i0au6ar';
+emailjs.init(EMAILJS_PK);
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ══════════════════════════════════════════════
@@ -427,36 +432,25 @@ function getEmails() { return contacts.filter(c => c.type === 'email').map(c => 
 async function sendEmails(dataEvento, horario, titulo, responsavel, descricao) {
   const emails = getEmails();
   if (!emails.length) { console.log('Nenhum e-mail cadastrado.'); return; }
-  try {
-    const res = await fetch(
-      SUPA_URL + '/functions/v1/enviar-email',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + SUPA_KEY
-        },
-        body: JSON.stringify({
-          emails,
-          data_evento: dataEvento,
-          horario: horario || '—',
-          titulo,
-          responsavel: responsavel || '—',
-          descricao: descricao || '—'
-        })
-      }
-    );
-    const json = await res.json();
-    if (json.ok) {
-      console.log('✅ E-mails enviados via Supabase!');
-      showToast('📧 E-mail enviado com sucesso!', 'email');
-    } else {
-      throw new Error(json.error);
+  let enviados = 0;
+  for (const email of emails) {
+    try {
+      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
+        to_email:    email,
+        data_evento: dataEvento,
+        horario:     horario || '—',
+        titulo:      titulo,
+        responsavel: responsavel || '—',
+        descricao:   descricao || '—'
+      });
+      enviados++;
+      console.log('✅ E-mail enviado para:', email);
+    } catch(e) {
+      console.error('❌ Erro ao enviar para', email, e);
     }
-  } catch(e) {
-    console.error('❌ Erro ao enviar e-mail:', e);
-    showToast('❌ Erro ao enviar e-mail!', 'err');
   }
+  if (enviados > 0) showToast('📧 E-mail enviado com sucesso!', 'email');
+  else showToast('❌ Erro ao enviar e-mail!', 'err');
 }
 
 function buildWppMsg(data, horario, titulo, responsavel, desc) {
