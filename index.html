@@ -361,57 +361,82 @@ const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 const lsEl = document.getElementById('ls');
 if (sessionStorage.getItem('igl_ok') === '1') lsEl.style.display = 'none';
 
-document.getElementById('pwb').addEventListener('click', tryLogin);
-document.getElementById('pwi').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+document.getElementById('pwb').addEventListener('click', tryLoginAndLoad);
+document.getElementById('pwi').addEventListener('keydown', e => { if (e.key === 'Enter') tryLoginAndLoad(); });
 document.getElementById('pwe').addEventListener('click', () => {
   const i = document.getElementById('pwi');
   i.type = i.type === 'password' ? 'text' : 'password';
   document.getElementById('pwe').textContent = i.type === 'password' ? '👁️' : '🙈';
 });
 function tryLogin() {
-  const i = document.getElementById('pwi');
-  if (i.value === PASS) {
-    sessionStorage.setItem('igl_ok', '1');
-    lsEl.style.opacity = '0'; lsEl.style.transition = 'opacity .4s';
-    setTimeout(() => lsEl.style.display = 'none', 400);
-  } else {
-    document.getElementById('pwe2').classList.add('show');
-    i.classList.add('shake'); setTimeout(() => i.classList.remove('shake'), 300);
-    i.value = ''; i.focus();
-  }
+  // handled by tryLoginAndLoad
 }
 
 // ══════════════════════════════════════════════
 //  SUPABASE
 // ══════════════════════════════════════════════
 async function dbLoad() {
-  // Load events
-  const { data: evData, error: evErr } = await sb.from('eventos').select('*');
-  if (evErr) { console.error('Load events:', evErr); }
-  else {
+  try {
+    // Load events
+    const { data: evData, error: evErr } = await sb.from('eventos').select('*');
+    if (evErr) throw evErr;
     events = {};
     (evData || []).forEach(ev => {
       if (!events[ev.data]) events[ev.data] = [];
-      events[ev.data].push({ id: ev.id, time: ev.time, title: ev.title, responsavel: ev.responsavel, desc: ev.descricao });
+      events[ev.data].push({
+        id: ev.id,
+        time: ev.time || '',
+        title: ev.title || '',
+        responsavel: ev.responsavel || '',
+        desc: ev.descricao || ''
+      });
     });
+    console.log('✅ Eventos carregados:', evData?.length || 0);
+  } catch(e) {
+    console.error('❌ Erro ao carregar eventos:', e);
+    showToast('❌ Erro ao carregar dados!', 'err');
   }
-  // Load contacts
-  const { data: ctData, error: ctErr } = await sb.from('contatos').select('*').order('created_at', { ascending: true });
-  if (ctErr) { console.error('Load contacts:', ctErr); contacts = []; }
-  else { contacts = (ctData || []).map(c => ({ id: c.id, type: c.type || 'email', value: c.value })); }
+
+  try {
+    // Load contacts
+    const { data: ctData, error: ctErr } = await sb.from('contatos').select('*').order('created_at', { ascending: true });
+    if (ctErr) throw ctErr;
+    contacts = (ctData || []).map(c => ({ id: c.id, type: c.type || 'email', value: c.value }));
+    console.log('✅ Contatos carregados:', contacts.length);
+  } catch(e) {
+    console.error('❌ Erro ao carregar contatos:', e);
+    contacts = [];
+  }
 }
 
 async function dbSaveEvent(ev, data) {
-  const { error } = await sb.from('eventos').upsert(
-    { id: ev.id, data, time: ev.time||'', title: ev.title||'', responsavel: ev.responsavel||'', descricao: ev.desc||'' },
-    { onConflict: 'id' }
-  );
-  if (error) { console.error('Save event:', error); showToast('❌ Erro ao salvar!', 'err'); }
+  try {
+    const payload = {
+      id: String(ev.id),
+      data: String(data),
+      time: ev.time || '',
+      title: ev.title || '',
+      responsavel: ev.responsavel || '',
+      descricao: ev.desc || ''
+    };
+    console.log('💾 Salvando no Supabase:', payload);
+    const { error } = await sb.from('eventos').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+    console.log('✅ Evento salvo no Supabase!');
+  } catch(e) {
+    console.error('❌ Erro ao salvar evento:', e);
+    showToast('❌ Erro ao salvar! Tente novamente.', 'err');
+  }
 }
 
 async function dbDeleteEvent(id) {
-  const { error } = await sb.from('eventos').delete().eq('id', id);
-  if (error) console.error('Delete event:', error);
+  try {
+    const { error } = await sb.from('eventos').delete().eq('id', String(id));
+    if (error) throw error;
+    console.log('✅ Evento deletado:', id);
+  } catch(e) {
+    console.error('❌ Erro ao deletar evento:', e);
+  }
 }
 
 async function dbSaveContact(ct) {
@@ -780,10 +805,35 @@ function showToast(msg,type=''){
 function renderAll(){ renderCal(); renderAlerts(); renderContacts(); }
 
 async function init(){
+  // Only load if logged in
+  if (sessionStorage.getItem('igl_ok') !== '1') {
+    document.getElementById('loading').classList.add('hide');
+    return;
+  }
   document.getElementById('loading').classList.remove('hide');
   await dbLoad();
   renderAll();
   document.getElementById('loading').classList.add('hide');
+}
+
+// Override tryLogin to reload data after login
+const origTryLogin = tryLogin;
+async function tryLoginAndLoad() {
+  const inp = document.getElementById('pwi');
+  if (inp.value === PASS) {
+    sessionStorage.setItem('igl_ok', '1');
+    const ls2 = document.getElementById('ls');
+    ls2.style.opacity = '0'; ls2.style.transition = 'opacity .4s';
+    setTimeout(() => ls2.style.display = 'none', 400);
+    document.getElementById('loading').classList.remove('hide');
+    await dbLoad();
+    renderAll();
+    document.getElementById('loading').classList.add('hide');
+  } else {
+    document.getElementById('pwe2').classList.add('show');
+    inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 300);
+    inp.value = ''; inp.focus();
+  }
 }
 
 init();
