@@ -323,6 +323,60 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--in
   .cell.has-ev .cell-num::after { content: '•'; color: var(--or); font-size: 14px; margin-left: 2px; }
   .cal-wrap { padding: 14px; }
 }
+
+/* ─── REPLICATE MODAL ────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: auto; }
+.modal-box {
+  background: var(--wh); border-radius: 20px;
+  padding: 32px 28px; width: 100%; max-width: 420px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.3);
+  animation: modalIn .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.modal-sub { font-size:12px; color:var(--ink3); margin-bottom:20px; }
+.modal-ev-preview {
+  background: var(--bg); border-radius: var(--r2);
+  border-left: 4px solid var(--or); padding: 12px 14px;
+  margin-bottom: 20px;
+}
+.modal-ev-name { font-size:14px; font-weight:700; color:var(--ink); }
+.modal-ev-date { font-size:11px; color:var(--ink3); margin-top:3px; }
+.modal-field { display:flex; flex-direction:column; gap:5px; margin-bottom:16px; }
+.modal-field label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--grl); }
+.modal-field input {
+  font-family:'Outfit',sans-serif; font-size:14px; color:var(--ink);
+  background:var(--bg); border:1.5px solid var(--bg3); border-radius:var(--r3);
+  padding:11px 14px; outline:none; transition:border-color .15s;
+}
+.modal-field input:focus { border-color:var(--or); }
+.modal-hint { font-size:11px; color:var(--ink3); margin-bottom:20px; line-height:1.5; }
+.modal-actions { display:flex; gap:10px; }
+.modal-btn-cancel {
+  flex:1; background:none; border:1.5px solid var(--bg3); border-radius:50px;
+  padding:12px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+  color:var(--ink2); cursor:pointer; transition:all .15s;
+}
+.modal-btn-cancel:hover { border-color:var(--ink3); }
+.modal-btn-confirm {
+  flex:2; background:var(--gr); color:#fff; border:none; border-radius:50px;
+  padding:12px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .15s; box-shadow:0 4px 14px rgba(74,90,34,.28);
+}
+.modal-btn-confirm:hover { background:var(--grd); transform:translateY(-1px); }
+.modal-btn-confirm:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+.replicate-result {
+  background:var(--grp); border-radius:var(--r2); padding:12px 14px;
+  margin-top:14px; font-size:12px; color:var(--gr); font-weight:600;
+  display:none; text-align:center;
+}
+.replicate-result.show { display:block; }
 </style>
 </head>
 <body>
@@ -476,6 +530,31 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--in
     </div>
   </div>
 
+</div>
+
+
+<!-- REPLICATE MODAL -->
+<div class="modal-overlay" id="rep-modal">
+  <div class="modal-box">
+    <div class="modal-title">🔁 Replicar Compromisso</div>
+    <div class="modal-sub">Copiar este compromisso para os próximos meses</div>
+    <div class="modal-ev-preview">
+      <div class="modal-ev-name" id="rep-ev-name">—</div>
+      <div class="modal-ev-date" id="rep-ev-date">—</div>
+    </div>
+    <div class="modal-field">
+      <label>Repetir por quantos meses?</label>
+      <input type="number" id="rep-months" min="1" max="24" value="3" placeholder="Ex: 3">
+    </div>
+    <div class="modal-hint">
+      Ex: se escolher <strong>3 meses</strong>, o compromisso será copiado para os 3 próximos meses no mesmo dia da semana.
+    </div>
+    <div class="replicate-result" id="rep-result"></div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" id="rep-cancel">Cancelar</button>
+      <button class="modal-btn-confirm" id="rep-confirm">✅ Replicar</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -820,6 +899,7 @@ function renderEvList(k) {
         ${ev.desc?`<div class="ev-desc">${ev.desc}</div>`:''}
       </div>
       <div class="ev-acts">
+        <button class="ev-act" title="Replicar" onclick="openReplicate('${k}','${ev.id}')">🔁</button>
         <button class="ev-act" title="WhatsApp" onclick="wppEv('${k}','${ev.id}')">📲</button>
         <button class="ev-act" title="Editar" onclick="editEv('${k}','${ev.id}')">✏️</button>
         <button class="ev-act" title="Excluir" onclick="delEv('${k}','${ev.id}')">🗑️</button>
@@ -905,6 +985,87 @@ document.getElementById('btn-wpp').addEventListener('click',()=>{
   });
   window.open(`https://wa.me/?text=${encodeURIComponent(msg+'\n_Enviado via IGL Calendário_')}`,'_blank');
   toast('📲 Abrindo WhatsApp...','wpp');
+});
+
+
+// ════════════════════════════════════════════════
+//  REPLICATE
+// ════════════════════════════════════════════════
+let repKey = null, repId = null;
+
+function openReplicate(k, id) {
+  const ev = (events[k]||[]).find(e => e.id === id); if (!ev) return;
+  repKey = k; repId = id;
+  document.getElementById('rep-ev-name').textContent = ev.title + (ev.responsavel ? ' · ' + ev.responsavel : '');
+  document.getElementById('rep-ev-date').textContent = '📅 ' + fmtDate(k) + (ev.time ? ' às ' + ev.time : '');
+  document.getElementById('rep-months').value = 3;
+  document.getElementById('rep-result').classList.remove('show');
+  document.getElementById('rep-modal').classList.add('show');
+}
+
+document.getElementById('rep-cancel').addEventListener('click', () => {
+  document.getElementById('rep-modal').classList.remove('show');
+  repKey = null; repId = null;
+});
+
+document.getElementById('rep-confirm').addEventListener('click', async () => {
+  if (!repKey || !repId) return;
+  const ev = (events[repKey]||[]).find(e => e.id === repId); if (!ev) return;
+  const months = parseInt(document.getElementById('rep-months').value);
+  if (!months || months < 1 || months > 24) { toast('⚠️ Informe entre 1 e 24 meses!', 'err'); return; }
+
+  const btn = document.getElementById('rep-confirm'); btn.disabled = true;
+  showSync();
+
+  const [y, m, d] = repKey.split('-').map(Number);
+  const baseDate = new Date(y, m-1, d);
+  let created = 0;
+  const errors = [];
+
+  for (let i = 1; i <= months; i++) {
+    const newDate = new Date(baseDate);
+    newDate.setMonth(newDate.getMonth() + i);
+    // Handle month overflow (e.g. Jan 31 + 1 month = Feb 28)
+    if (newDate.getDate() !== baseDate.getDate()) {
+      newDate.setDate(0); // last day of previous month
+    }
+    const newKey = dk(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+    const newEv = {
+      id: String(Date.now()) + '_' + i,
+      time: ev.time,
+      title: ev.title,
+      responsavel: ev.responsavel,
+      desc: ev.desc
+    };
+    // Add to local state
+    if (!events[newKey]) events[newKey] = [];
+    // Avoid duplicates
+    const exists = events[newKey].find(e => e.title === ev.title && e.time === ev.time);
+    if (exists) continue;
+    events[newKey].push(newEv);
+    try {
+      await saveEventDB(newEv, newKey);
+      created++;
+    } catch(e) {
+      errors.push(fmtDate(newKey));
+      events[newKey] = events[newKey].filter(e => e.id !== newEv.id);
+    }
+    await new Promise(r => setTimeout(r, 80)); // small delay between saves
+  }
+
+  hideSync(); btn.disabled = false;
+  renderCal(); renderAlerts();
+
+  const resultEl = document.getElementById('rep-result');
+  if (created > 0) {
+    resultEl.textContent = `✅ Replicado para ${created} mês(es) com sucesso!`;
+    resultEl.classList.add('show');
+    toast(`🔁 Compromisso replicado para ${created} mês(es)!`, 'ok');
+    setTimeout(() => document.getElementById('rep-modal').classList.remove('show'), 2000);
+  } else {
+    resultEl.textContent = '⚠️ Nenhum mês foi replicado. Verifique se já existem.';
+    resultEl.classList.add('show');
+  }
 });
 
 // ════════════════════════════════════════════════
