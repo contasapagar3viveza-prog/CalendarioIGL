@@ -2,352 +2,499 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IGL • Calendário</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --or:#D4581A;--or2:#E8763A;--orp:#F5C4A2;--orl:#FEF0E6;
-  --gr:#5C6B2E;--grd:#3E4A1C;--grl:#7A8C3A;--grp:#EEF0E6;
-  --cr:#F5F0E8;--cr2:#EDE8DC;--wh:#FFFFFF;
-  --tx:#1E1E1E;--tx2:#555;--mu:#999;
-  --sh:0 4px 24px rgba(62,74,28,.12);
-  --sh2:0 8px 40px rgba(62,74,28,.16);
-  --r:18px;--r2:12px;--hh:68px;
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --or: #C8521A; --or2: #E06030; --orl: #FDF0E8; --orp: #F2C4A4;
+  --gr: #4A5A22; --grd: #2E3A10; --grl: #6A7A32; --grp: #E8EDD8;
+  --ink: #1A1A1A; --ink2: #3A3A3A; --ink3: #6A6A6A;
+  --bg: #F8F4EE; --bg2: #F0EBE2; --bg3: #E8E2D8;
+  --wh: #FFFFFF;
+  --r: 16px; --r2: 10px; --r3: 8px;
+  --sh: 0 2px 12px rgba(46,58,16,.10);
+  --sh2: 0 8px 32px rgba(46,58,16,.14);
+  --sh3: 0 20px 60px rgba(46,58,16,.18);
+  --sidebar: 320px;
+  --header: 64px;
 }
-html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--tx);min-height:100vh;overflow-x:hidden}
+html { scroll-behavior: smooth; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
-/* ── LOGIN ── */
-#ls{position:fixed;inset:0;z-index:9999;background:var(--grd);display:flex;align-items:center;justify-content:center;padding:20px}
-#ls::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(212,88,26,.3) 0%,transparent 65%);pointer-events:none}
-.lb{background:#fff;border-radius:24px;padding:44px 36px 36px;width:100%;max-width:380px;text-align:center;position:relative;z-index:1;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popUp .4s cubic-bezier(.4,0,.2,1)}
-@keyframes popUp{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.le{font-size:10px;letter-spacing:7px;text-transform:uppercase;color:var(--gr);font-weight:700}
-.lt{font-family:'Fraunces',serif;font-size:40px;font-weight:900;color:var(--or);line-height:1;margin:6px 0 28px}
-.lf{position:relative;margin-bottom:10px}
-.lf input{width:100%;padding:15px 50px 15px 18px;border:2px solid #eee;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--tx);background:#fafafa;outline:none;transition:border-color .2s;letter-spacing:2px}
-.lf input:focus{border-color:var(--or);background:#fff}
-.leye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--mu)}
-.lerr{font-size:12px;color:#e53935;font-weight:600;min-height:18px;margin-bottom:12px;opacity:0;transition:opacity .2s}
-.lerr.show{opacity:1}
-.lbtn{width:100%;background:var(--or);color:#fff;border:none;border-radius:50px;padding:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:background .15s,transform .12s;box-shadow:0 6px 24px rgba(212,88,26,.32)}
-.lbtn:hover{background:var(--gr);transform:translateY(-2px)}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.shake{animation:shake .3s}
-
-/* ── HEADER ── */
-.hdr{position:sticky;top:0;z-index:200;background:var(--grd);height:var(--hh);display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 2px 16px rgba(0,0,0,.2)}
-.brand{display:flex;align-items:center;gap:10px}
-.bi{font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--orp);font-weight:700}
-.bl{width:1px;height:22px;background:rgba(255,255,255,.2)}
-.bn{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--or2);line-height:1}
-.nav{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:50px;padding:6px 12px}
-.nb{width:28px;height:28px;border-radius:50%;border:none;background:var(--or);color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .12s}
-.nb:hover{background:var(--or2);transform:scale(1.1)}
-.ns{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#fff;background:transparent;border:none;outline:none;cursor:pointer}
-.ns option{background:var(--grd)}
-.ny{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#fff;background:transparent;border:none;outline:none;width:50px;text-align:center}
-.nd{width:4px;height:4px;background:rgba(255,255,255,.3);border-radius:50%}
-
-/* ── TABS ── */
-.tabs{position:sticky;top:var(--hh);z-index:199;background:#fff;border-bottom:2px solid var(--cr2);display:none}
-.tbs{display:flex}
-.tb{flex:1;padding:12px 6px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
-.tb.on{color:var(--or);border-bottom-color:var(--or)}
-
-/* ── BODY ── */
-.body{display:grid;grid-template-columns:1fr 390px;gap:20px;padding:20px;max-width:1400px;margin:0 auto;align-items:start}
-.col-l{display:flex;flex-direction:column;gap:14px}
-.col-r{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--hh) + 20px);max-height:calc(100vh - var(--hh) - 40px);overflow-y:auto;padding-right:2px}
-.col-r::-webkit-scrollbar{width:3px}
-.col-r::-webkit-scrollbar-thumb{background:var(--cr2);border-radius:3px}
-
-/* ── LEGEND ── */
-.legend{display:flex;gap:12px;flex-wrap:wrap}
-.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);font-weight:500}
-.ld{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-
-/* ── CALENDAR ── */
-.cal{background:#fff;border-radius:var(--r);box-shadow:var(--sh2);overflow:hidden}
-.wdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--grd);padding:10px 6px 7px}
-.wdays span{text-align:center;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orp)}
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:5px;background:var(--cr)}
-.cc{border-radius:var(--r2);padding:7px 6px 5px;background:#fff;cursor:pointer;min-height:86px;display:flex;flex-direction:column;gap:2px;border:2px solid transparent;transition:all .17s;overflow:hidden}
-.cc:hover{background:var(--orl);border-color:var(--orp);transform:translateY(-2px);box-shadow:0 5px 16px rgba(212,88,26,.13);z-index:2}
-.cc.emp{background:transparent;cursor:default;pointer-events:none}
-.cc.tod{background:var(--or);border-color:var(--or)}
-.cc.tod .dn{color:#fff}
-.cc.tod:hover{background:var(--or2)}
-.cc.hev{border-color:var(--grl)}
-.cc.soon{border-color:var(--or);background:var(--orl)}
-.cc.sel{border-color:var(--gr);background:var(--grp);box-shadow:0 0 0 3px rgba(92,107,46,.15)}
-.dn{font-size:14px;font-weight:700;color:var(--grd);line-height:1;flex-shrink:0}
-.sb{font-size:7px;font-weight:800;color:var(--or);letter-spacing:.5px;text-transform:uppercase}
-.chip{font-size:8px;font-weight:600;color:#fff;background:var(--or);border-radius:4px;padding:2px 5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;flex-shrink:0}
-.chip.g{background:var(--gr)}
-.chip.more{background:var(--cr2);color:var(--grd)}
-
-/* ── CARD BASE ── */
-.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
-.ch{padding:14px 16px 12px;border-bottom:1px solid var(--cr2);display:flex;align-items:center;gap:8px}
-.ci{font-size:17px}
-.ct{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--grd)}
-.cb{padding:14px 16px}
-
-/* ── ALERT PANEL ── */
-.alert-card{background:var(--grd);border-radius:var(--r);overflow:hidden;position:relative}
-.alert-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.alert-title{display:flex;align-items:center;gap:8px}
-.alert-label{font-size:13px;font-weight:700;color:var(--orp);letter-spacing:.5px}
-.alert-badge-count{background:var(--or);color:#fff;border-radius:50px;padding:2px 10px;font-size:11px;font-weight:700}
-.alert-toggle{color:rgba(255,255,255,.6);font-size:18px;transition:transform .3s;line-height:1}
-.alert-toggle.open{transform:rotate(180deg)}
-.alert-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1)}
-.alert-body.open{max-height:400px}
-.alert-inner{padding:0 16px 14px}
-.ai{background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;margin-bottom:6px;border-left:3px solid var(--or2)}
-.ai:last-child{margin-bottom:0}
-.aw{font-size:10px;font-weight:700;color:var(--or2);text-transform:uppercase;letter-spacing:.5px}
-.ae{font-size:13px;font-weight:600;color:#fff;margin-top:2px}
-.am{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
-.no-alerts{text-align:center;padding:16px;color:rgba(255,255,255,.5);font-size:13px;font-style:italic}
-
-/* ── CONTACTS CARD ── */
-.contact-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.contact-item{display:flex;align-items:center;gap:8px;background:var(--cr);border-radius:10px;padding:9px 12px}
-.contact-icon{font-size:14px;flex-shrink:0}
-.contact-val{flex:1;font-size:12px;font-weight:600;color:var(--grd);word-break:break-all}
-.contact-del{background:none;border:none;cursor:pointer;color:var(--or);font-size:16px;line-height:1;padding:0;flex-shrink:0;transition:color .15s}
-.contact-del:hover{color:#e53935}
-.contact-add{display:flex;gap:7px;margin-bottom:8px}
-.contact-add input{flex:1;font-family:'DM Sans',sans-serif;font-size:12px;border:2px solid var(--cr2);border-radius:10px;padding:9px 11px;outline:none;color:var(--tx);background:var(--cr);transition:border-color .15s}
-.contact-add input:focus{border-color:var(--or);background:#fff}
-.btn-cadd{background:var(--or);color:#fff;border:none;border-radius:10px;width:36px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
-.btn-cadd:hover{background:var(--gr)}
-.contact-hint{font-size:10px;color:var(--mu);line-height:1.5}
-
-/* ── EVENT CARD ── */
-.ecard{display:none}
-.ecard.on{display:block;animation:slideUp .25s cubic-bezier(.4,0,.2,1)}
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.edl{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--grd)}
-.edl span{color:var(--or)}
-.evlist{display:flex;flex-direction:column;gap:7px;max-height:230px;overflow-y:auto;margin-bottom:12px;padding-right:2px}
-.evlist::-webkit-scrollbar{width:3px}
-.evlist::-webkit-scrollbar-thumb{background:var(--cr2);border-radius:3px}
-.evi{background:var(--cr);border-radius:var(--r2);border-left:4px solid var(--or);padding:10px 12px;display:flex;gap:9px;align-items:flex-start;animation:fadeIn .2s}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.evi:hover{border-left-color:var(--gr)}
-.eit{font-size:11px;font-weight:700;color:var(--or);min-width:40px;flex-shrink:0;padding-top:2px}
-.eib{flex:1;min-width:0}
-.eitn{font-size:13px;font-weight:700;color:var(--grd)}
-.eirp{font-size:10px;color:var(--gr);font-weight:600;margin-top:2px}
-.eidc{font-size:10px;color:var(--tx2);margin-top:2px;line-height:1.4}
-.eia{display:flex;gap:3px;flex-shrink:0}
-.bact{width:28px;height:28px;border-radius:8px;border:none;background:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.bact:hover{background:var(--cr2)}
-.noev{text-align:center;padding:14px;color:var(--mu);font-size:12px;font-style:italic}
-
-/* ── FORM ── */
-.eform{background:var(--cr);border-radius:var(--r2);padding:13px}
-.fen{font-size:11px;color:var(--or);font-weight:700;margin-bottom:8px;display:none;background:var(--orl);border-radius:8px;padding:5px 10px}
-.fen.on{display:block}
-.frow{display:flex;gap:7px;margin-bottom:7px}
-.fg{display:flex;flex-direction:column;gap:3px;flex:1}
-.fg.sm{flex:0 0 90px}
-.fl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gr)}
-.fi,.fta{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--tx);background:#fff;border:2px solid transparent;border-radius:9px;padding:9px 11px;outline:none;transition:border-color .15s}
-.fi:focus,.fta:focus{border-color:var(--or)}
-.fta{resize:none;min-height:52px;line-height:1.5}
-.fact{display:flex;gap:7px;margin-top:10px}
-.bsave{flex:1;background:var(--or);color:#fff;border:none;border-radius:50px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s,transform .12s;box-shadow:0 4px 14px rgba(212,88,26,.26)}
-.bsave:hover{background:var(--gr);transform:translateY(-1px)}
-.bwpp{background:#25D366;color:#fff;border:none;border-radius:50px;padding:11px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .15s;box-shadow:0 4px 14px rgba(37,211,102,.26);white-space:nowrap}
-.bwpp:hover{background:#1ead55}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);z-index:9998;background:var(--grd);color:#fff;font-size:13px;font-weight:600;border-radius:50px;padding:11px 22px;box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .3s,transform .3s}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.wpp{background:#25D366}
-.toast.email{background:var(--or)}
-.toast.err{background:#e53935}
-
-/* ── LOADING OVERLAY ── */
-.loading{position:fixed;inset:0;background:rgba(62,74,28,.7);z-index:8888;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
-.loading.hide{display:none}
-.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--or2);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{color:#fff;font-size:14px;font-weight:600}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .tabs{display:block}
-  .body{grid-template-columns:1fr;padding:12px;gap:0}
-  .col-r{position:static;max-height:none;overflow-y:visible;padding-right:0;margin-top:12px}
-  .tp{display:none!important}
-  .tp.on{display:flex!important;flex-direction:column;gap:12px}
-  .cc{min-height:66px;padding:6px 5px 4px}
-  .dn{font-size:13px}
-  .chip{font-size:7.5px}
+/* ─── LOGIN ─────────────────────────────────── */
+#login {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--grd);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
 }
-@media(max-width:480px){
-  .bn{font-size:20px}
-  .cc{min-height:56px}
-  .chip{display:none}
-  .cc.hev .dn::after{content:'•';color:var(--or);margin-left:2px;font-size:10px}
+#login::before {
+  content: ''; position: absolute;
+  inset: 0; opacity: .04;
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+#login::after {
+  content: ''; position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(200,82,26,.35) 0%, transparent 65%);
+  pointer-events: none;
+}
+.login-box {
+  background: var(--wh); border-radius: 24px;
+  padding: 52px 44px 44px; width: 100%; max-width: 400px;
+  position: relative; z-index: 1;
+  box-shadow: 0 40px 100px rgba(0,0,0,.4);
+  animation: loginIn .5s cubic-bezier(.4,0,.2,1);
+}
+@keyframes loginIn { from { opacity:0; transform: translateY(24px) scale(.97) } to { opacity:1; transform: translateY(0) scale(1) } }
+.login-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 6px; text-transform: uppercase; color: var(--grl); margin-bottom: 6px; }
+.login-title { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 900; color: var(--or); line-height: 1; margin-bottom: 8px; }
+.login-sub { font-size: 13px; color: var(--ink3); margin-bottom: 32px; }
+.login-field { position: relative; margin-bottom: 10px; }
+.login-field input {
+  width: 100%; padding: 16px 52px 16px 20px;
+  border: 1.5px solid var(--bg3); border-radius: var(--r);
+  font-family: 'Outfit', sans-serif; font-size: 15px;
+  color: var(--ink); background: var(--bg); outline: none;
+  transition: border-color .2s, background .2s; letter-spacing: 3px;
+}
+.login-field input:focus { border-color: var(--or); background: var(--wh); }
+.login-eye { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: var(--ink3); transition: color .15s; }
+.login-eye:hover { color: var(--or); }
+.login-err { font-size: 12px; color: #D94040; font-weight: 500; min-height: 18px; margin-bottom: 16px; opacity: 0; transition: opacity .2s; }
+.login-err.show { opacity: 1; }
+.login-btn {
+  width: 100%; background: var(--or); color: var(--wh);
+  border: none; border-radius: 50px; padding: 16px;
+  font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600;
+  cursor: pointer; letter-spacing: .5px;
+  transition: background .15s, transform .12s, box-shadow .15s;
+  box-shadow: 0 6px 24px rgba(200,82,26,.35);
+}
+.login-btn:hover { background: var(--gr); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(74,90,34,.35); }
+.login-btn:active { transform: scale(.98); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 60%{transform:translateX(8px)} }
+.shake { animation: shake .3s; }
+
+/* ─── LOADING ────────────────────────────────── */
+#loading {
+  position: fixed; inset: 0; z-index: 8888;
+  background: rgba(46,58,16,.8); backdrop-filter: blur(4px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+}
+#loading.hide { display: none; }
+.spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--or2); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+.load-text { color: rgba(255,255,255,.8); font-size: 14px; font-weight: 500; }
+
+/* ─── SYNC BAR ───────────────────────────────── */
+#sync { position: fixed; top: 0; left: 0; right: 0; z-index: 7777; height: 3px; background: linear-gradient(90deg, var(--gr), var(--or)); display: none; animation: syncPulse 1.5s ease-in-out infinite; }
+#sync.show { display: block; }
+@keyframes syncPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+/* ─── APP SHELL ──────────────────────────────── */
+.app { display: flex; min-height: 100vh; }
+
+/* ─── SIDEBAR ────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar); flex-shrink: 0;
+  background: var(--grd); min-height: 100vh;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 0; }
+.sidebar-top { padding: 32px 24px 24px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.sidebar-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 6px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 4px; }
+.sidebar-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: var(--or2); line-height: 1; }
+
+/* NAV */
+.sidebar-nav { padding: 16px 16px 0; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-radius: var(--r2); cursor: pointer;
+  font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55);
+  transition: all .18s; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
+.nav-item.active { background: rgba(200,82,26,.25); color: var(--or2); }
+.nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+
+/* ALERT PANEL */
+.alert-panel { margin: 16px; border-radius: var(--r); background: rgba(255,255,255,.05); overflow: hidden; }
+.alert-panel-hdr {
+  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; transition: background .15s;
+}
+.alert-panel-hdr:hover { background: rgba(255,255,255,.05); }
+.alert-panel-ttl { display: flex; align-items: center; gap: 8px; }
+.alert-panel-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.65); letter-spacing: .5px; text-transform: uppercase; }
+.alert-badge { background: var(--or); color: #fff; border-radius: 50px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+.alert-arrow { color: rgba(255,255,255,.35); font-size: 12px; transition: transform .3s; }
+.alert-arrow.open { transform: rotate(180deg); }
+.alert-body { max-height: 0; overflow: hidden; transition: max-height .35s cubic-bezier(.4,0,.2,1); }
+.alert-body.open { max-height: 400px; }
+.alert-items { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.alert-item { background: rgba(255,255,255,.06); border-left: 3px solid var(--or2); border-radius: var(--r3); padding: 9px 11px; }
+.alert-when { font-size: 9px; font-weight: 700; color: var(--or2); text-transform: uppercase; letter-spacing: 1px; }
+.alert-ev-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85); margin-top: 2px; }
+.alert-ev-meta { font-size: 10px; color: rgba(255,255,255,.4); margin-top: 1px; }
+.alert-empty { font-size: 12px; color: rgba(255,255,255,.3); text-align: center; padding: 12px; font-style: italic; }
+
+/* EMAIL LIST */
+.email-section { margin: 16px; flex: 1; }
+.email-section-title { font-size: 9px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 10px; padding-left: 2px; }
+.email-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.email-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.06); border-radius: var(--r3); padding: 9px 11px; }
+.email-dot { width: 6px; height: 6px; background: var(--grl); border-radius: 50%; flex-shrink: 0; }
+.email-val { flex: 1; font-size: 11px; color: rgba(255,255,255,.7); word-break: break-all; font-weight: 500; }
+.email-actions { display: flex; gap: 2px; }
+.email-btn { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 4px; border-radius: 4px; color: rgba(255,255,255,.35); transition: color .15s, background .15s; }
+.email-btn:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); }
+.email-add { display: flex; gap: 6px; }
+.email-add input { flex: 1; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.1); border-radius: var(--r3); padding: 9px 12px; font-family: 'Outfit', sans-serif; font-size: 12px; color: rgba(255,255,255,.8); outline: none; transition: border-color .15s; }
+.email-add input:focus { border-color: rgba(200,82,26,.6); }
+.email-add input::placeholder { color: rgba(255,255,255,.25); }
+.email-add-btn { background: var(--or); color: #fff; border: none; border-radius: var(--r3); width: 36px; cursor: pointer; font-size: 18px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+.email-add-btn:hover { background: var(--or2); }
+.email-add-btn:disabled { opacity: .5; cursor: not-allowed; }
+.email-hint { font-size: 10px; color: rgba(255,255,255,.25); margin-top: 8px; line-height: 1.5; }
+.email-none { font-size: 11px; color: rgba(255,255,255,.25); text-align: center; padding: 8px; font-style: italic; }
+
+/* ─── MAIN ───────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* TOPBAR */
+.topbar {
+  height: var(--header); background: var(--wh); border-bottom: 1px solid var(--bg3);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--sh);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-month { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--ink); }
+.topbar-year { font-size: 26px; font-weight: 300; color: var(--ink3); }
+.nav-btns { display: flex; gap: 6px; }
+.nav-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--bg3); background: var(--wh); color: var(--ink2); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.nav-btn:hover { background: var(--or); border-color: var(--or); color: #fff; transform: scale(1.08); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.today-btn { background: none; border: 1.5px solid var(--bg3); border-radius: 50px; padding: 7px 16px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--ink2); cursor: pointer; transition: all .15s; }
+.today-btn:hover { border-color: var(--or); color: var(--or); }
+.month-sel { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink2); background: var(--bg); border: 1.5px solid var(--bg3); border-radius: var(--r3); padding: 7px 12px; outline: none; cursor: pointer; }
+
+/* CALENDAR GRID */
+.cal-wrap { flex: 1; padding: 20px 24px; }
+.weekdays { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 6px; }
+.weekday { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ink3); padding: 8px 0; }
+.weekday.weekend { color: var(--or); }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+
+/* CELL */
+.cell {
+  background: var(--wh); border-radius: var(--r); border: 1.5px solid var(--bg3);
+  min-height: 110px; padding: 10px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: all .18s; position: relative; overflow: hidden;
+}
+.cell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: transparent; transition: background .18s; }
+.cell:hover { border-color: var(--orp); box-shadow: var(--sh2); transform: translateY(-2px); }
+.cell:hover::before { background: var(--or); }
+.cell.empty { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+.cell.today { border-color: var(--or); background: var(--orl); }
+.cell.today::before { background: var(--or); }
+.cell.today .cell-num { color: var(--or); }
+.cell.has-ev { border-color: var(--grl); }
+.cell.has-ev::before { background: var(--gr); }
+.cell.soon { border-color: var(--or); background: #FFF8F4; }
+.cell.soon::before { background: var(--or2); }
+.cell.selected { border-color: var(--gr); box-shadow: 0 0 0 3px rgba(74,90,34,.18); }
+.cell.selected::before { background: var(--gr); }
+
+.cell-num { font-size: 18px; font-weight: 700; color: var(--ink2); line-height: 1; }
+.cell-today-badge { font-size: 8px; font-weight: 700; background: var(--or); color: #fff; border-radius: 50px; padding: 1px 7px; display: inline-block; margin-top: 2px; letter-spacing: .5px; text-transform: uppercase; }
+.cell-soon-badge { font-size: 8px; font-weight: 700; color: var(--or); margin-top: 1px; letter-spacing: .3px; }
+.ev-pill { font-size: 10px; font-weight: 600; color: #fff; background: var(--or); border-radius: 5px; padding: 3px 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1.3; }
+.ev-pill.alt { background: var(--gr); }
+.ev-pill.more { background: var(--bg3); color: var(--ink3); }
+
+/* ─── EVENT PANEL ────────────────────────────── */
+.event-panel {
+  width: 360px; flex-shrink: 0;
+  background: var(--wh); border-left: 1px solid var(--bg3);
+  min-height: 100vh; display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.event-panel::-webkit-scrollbar { width: 0; }
+.ep-header { padding: 24px 22px 18px; border-bottom: 1px solid var(--bg3); }
+.ep-label { font-size: 9px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
+.ep-date { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); }
+.ep-date span { color: var(--or); }
+.ep-placeholder { padding: 40px 22px; text-align: center; }
+.ep-placeholder-icon { font-size: 48px; margin-bottom: 12px; opacity: .3; }
+.ep-placeholder-txt { font-size: 13px; color: var(--ink3); line-height: 1.6; }
+.ep-body { padding: 16px 22px; flex: 1; display: none; flex-direction: column; gap: 0; }
+.ep-body.show { display: flex; }
+
+/* EVENT LIST */
+.ev-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+.ev-list::-webkit-scrollbar { width: 3px; }
+.ev-list::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+.ev-item { background: var(--bg); border-radius: var(--r2); border-left: 3px solid var(--or); padding: 11px 13px; display: flex; gap: 10px; align-items: flex-start; animation: evIn .2s; transition: border-color .15s; }
+.ev-item:hover { border-left-color: var(--gr); }
+@keyframes evIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
+.ev-time { font-size: 11px; font-weight: 700; color: var(--or); min-width: 42px; flex-shrink: 0; padding-top: 1px; font-variant-numeric: tabular-nums; }
+.ev-content { flex: 1; min-width: 0; }
+.ev-title { font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.ev-resp { font-size: 11px; color: var(--grl); font-weight: 600; margin-top: 2px; }
+.ev-desc { font-size: 11px; color: var(--ink3); margin-top: 3px; line-height: 1.4; }
+.ev-acts { display: flex; gap: 2px; flex-shrink: 0; }
+.ev-act { width: 27px; height: 27px; border-radius: 6px; border: none; background: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: background .15s; color: var(--ink3); }
+.ev-act:hover { background: var(--bg2); }
+.ev-none { text-align: center; padding: 20px; color: var(--ink3); font-size: 12px; line-height: 1.6; }
+
+/* FORM */
+.ev-form { background: var(--bg); border-radius: var(--r); padding: 16px; border: 1.5px solid var(--bg3); }
+.form-edit-badge { background: var(--orl); border: 1.5px solid var(--orp); color: var(--or); font-size: 11px; font-weight: 600; border-radius: 6px; padding: 5px 10px; margin-bottom: 12px; display: none; }
+.form-edit-badge.show { display: block; }
+.form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.form-row:last-child { margin-bottom: 0; }
+.fg { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.fg.sm { flex: 0 0 90px; }
+.fg label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--grl); }
+.fg input, .fg textarea {
+  font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--ink);
+  background: var(--wh); border: 1.5px solid var(--bg3); border-radius: var(--r3);
+  padding: 10px 12px; outline: none; transition: border-color .15s;
+}
+.fg input:focus, .fg textarea:focus { border-color: var(--or); }
+.fg textarea { resize: none; min-height: 60px; line-height: 1.5; }
+.form-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-save {
+  flex: 1; background: var(--or); color: #fff; border: none;
+  border-radius: 50px; padding: 12px 18px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .15s; box-shadow: 0 4px 16px rgba(200,82,26,.28);
+}
+.btn-save:hover { background: var(--gr); box-shadow: 0 6px 20px rgba(74,90,34,.3); transform: translateY(-1px); }
+.btn-save:active { transform: scale(.98); }
+.btn-save:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.btn-wpp { background: #25D366; color: #fff; border: none; border-radius: 50px; padding: 12px 14px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .15s; box-shadow: 0 4px 14px rgba(37,211,102,.28); white-space: nowrap; }
+.btn-wpp:hover { background: #1ead55; transform: translateY(-1px); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+  z-index: 9990; background: var(--grd); color: #fff;
+  font-size: 13px; font-weight: 500; border-radius: 50px;
+  padding: 12px 24px; box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  opacity: 0; pointer-events: none; white-space: nowrap;
+  transition: opacity .3s, transform .3s; max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--gr); }
+.toast.err { background: #C94040; }
+.toast.email { background: var(--or); }
+.toast.wpp { background: #25D366; }
+
+/* LEGEND */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink3); font-weight: 500; }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* MOBILE */
+@media (max-width: 1100px) {
+  .event-panel { width: 300px; }
+  .sidebar { width: 260px; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .event-panel { display: none; }
+  .app { flex-direction: column; }
+  .main { width: 100%; }
+  .cell { min-height: 70px; padding: 7px; }
+  .cell-num { font-size: 15px; }
+  .ev-pill { display: none; }
+  .cell.has-ev .cell-num::after { content: '•'; color: var(--or); font-size: 14px; margin-left: 2px; }
+  .cal-wrap { padding: 14px; }
 }
 </style>
 </head>
 <body>
 
 <!-- LOADING -->
-<div class="loading" id="loading">
+<div id="loading">
   <div class="spinner"></div>
-  <div class="loading-txt">Carregando calendário...</div>
+  <div class="load-text" id="load-text">Carregando calendário...</div>
 </div>
+
+<!-- SYNC BAR -->
+<div id="sync"></div>
 
 <!-- LOGIN -->
-<div id="ls">
-  <div class="lb">
-    <div class="le">IGL</div>
-    <div class="lt">Calendário</div>
-    <div class="lf">
-      <input type="password" id="pwi" placeholder="Digite a senha..." autocomplete="off">
-      <button class="leye" id="pwe" tabindex="-1">👁️</button>
+<div id="login">
+  <div class="login-box">
+    <div class="login-eyebrow">Acesso restrito</div>
+    <div class="login-title">IGL<br>Calendário</div>
+    <div class="login-sub">Setor Financeiro • Casa Viveza</div>
+    <div class="login-field">
+      <input type="password" id="pw-inp" placeholder="Senha de acesso" autocomplete="off">
+      <button class="login-eye" id="pw-eye" tabindex="-1">👁</button>
     </div>
-    <div class="lerr" id="pwe2">Senha incorreta. Tente novamente.</div>
-    <button class="lbtn" id="pwb">Entrar →</button>
+    <div class="login-err" id="pw-err">Senha incorreta. Tente novamente.</div>
+    <button class="login-btn" id="pw-btn">Entrar no Calendário →</button>
   </div>
 </div>
 
-<!-- HEADER -->
-<header class="hdr">
-  <div class="brand">
-    <span class="bi">IGL</span>
-    <div class="bl"></div>
-    <span class="bn">Calendário</span>
-  </div>
-  <div class="nav">
-    <button class="nb" id="prev">&#8592;</button>
-    <select class="ns" id="msel"></select>
-    <div class="nd"></div>
-    <input type="number" class="ny" id="yinp" min="2020" max="2040">
-    <button class="nb" id="next">&#8594;</button>
-  </div>
-</header>
+<!-- APP -->
+<div class="app">
 
-<!-- TABS (mobile) -->
-<div class="tabs">
-  <div class="tbs">
-    <button class="tb on" data-tab="cal">📅 Calendário</button>
-    <button class="tb" data-tab="ev">📌 Compromisso</button>
-    <button class="tb" data-tab="ct">📋 Contatos</button>
-  </div>
-</div>
-
-<!-- BODY -->
-<div class="body">
-
-  <!-- LEFT: CALENDAR -->
-  <div class="col-l tp on" id="tab-cal">
-    <div class="legend">
-      <div class="li"><div class="ld" style="background:var(--or)"></div>Hoje</div>
-      <div class="li"><div class="ld" style="background:var(--grp);border:2px solid var(--grl)"></div>Com compromisso</div>
-      <div class="li"><div class="ld" style="background:var(--orl);border:2px solid var(--or)"></div>⚠️ Até 2 dias</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-eyebrow">IGL</div>
+      <div class="sidebar-title">Calendário</div>
     </div>
-    <div class="cal">
-      <div class="wdays">
-        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
-      </div>
-      <div class="grid" id="grid"></div>
-    </div>
-  </div>
 
-  <!-- RIGHT -->
-  <div class="col-r">
-
-    <!-- ALERT PANEL -->
-    <div class="alert-card" id="alert-card">
-      <div class="alert-header" id="alert-toggle">
-        <div class="alert-title">
-          <span style="font-size:18px">🔔</span>
-          <span class="alert-label">Alertas de Compromissos</span>
-          <span class="alert-badge-count" id="alert-count">0</span>
+    <!-- ALERTS -->
+    <div class="alert-panel">
+      <div class="alert-panel-hdr" id="alert-toggle">
+        <div class="alert-panel-ttl">
+          <span style="font-size:15px">🔔</span>
+          <span class="alert-panel-label">Alertas</span>
+          <span class="alert-badge" id="alert-badge">0</span>
         </div>
-        <span class="alert-toggle" id="alert-arrow">▼</span>
+        <span class="alert-arrow" id="alert-arrow">▼</span>
       </div>
       <div class="alert-body" id="alert-body">
-        <div class="alert-inner" id="alert-inner"></div>
+        <div class="alert-items" id="alert-items"></div>
       </div>
     </div>
 
-    <!-- CONTACTS CARD -->
-    <div class="card tp on" id="tab-ct">
-      <div class="ch"><span class="ci">📧</span><span class="ct">E-mails para notificação</span></div>
-      <div class="cb">
-        <div class="contact-list" id="contact-list"></div>
-        <div class="contact-add">
-          <input type="text" id="ct-val" placeholder="Digite aqui...">
-          <button class="btn-cadd" id="ct-add">+</button>
+    <!-- EMAILS -->
+    <div class="email-section">
+      <div class="email-section-title">Notificações por e-mail</div>
+      <div class="email-list" id="email-list"></div>
+      <div class="email-add">
+        <input type="email" id="email-inp" placeholder="Adicionar e-mail...">
+        <button class="email-add-btn" id="email-add-btn" title="Adicionar">+</button>
+      </div>
+      <div class="email-hint">Ao salvar ou editar um compromisso todos os e-mails acima serão notificados automaticamente.</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="nav-btns">
+          <button class="nav-btn" id="prev">&#8592;</button>
+          <button class="nav-btn" id="next">&#8594;</button>
         </div>
-        <div class="contact-hint">Ao salvar ou editar um compromisso, todos os e-mails e telefones receberão a notificação automaticamente.</div>
-      </div>
-    </div>
-
-    <!-- EVENT CARD -->
-    <div class="card ecard tp on" id="tab-ev">
-      <div class="ch"><span class="ci">📌</span><div class="edl" id="edl">Selecione um dia</div></div>
-      <div class="cb" id="ecb" style="display:none">
-        <div class="evlist" id="evlist"></div>
-        <div class="eform">
-          <div class="fen" id="fen">✏️ Editando compromisso</div>
-          <div class="frow">
-            <div class="fg sm"><label class="fl">Horário</label><input type="time" class="fi" id="ft" value="09:00"></div>
-            <div class="fg"><label class="fl">Título *</label><input type="text" class="fi" id="ftl" placeholder="Ex: Reunião..."></div>
-          </div>
-          <div class="frow">
-            <div class="fg"><label class="fl">Responsável (opcional)</label><input type="text" class="fi" id="frp" placeholder="Nome do responsável..."></div>
-          </div>
-          <div class="frow">
-            <div class="fg"><label class="fl">Descrição / Observações</label><textarea class="fta" id="fdc" placeholder="Detalhes..."></textarea></div>
-          </div>
-          <div class="fact">
-            <button class="bsave" id="bsave">💾 <span id="bsl">Salvar</span></button>
-            <button class="bwpp" id="bwpp">📲 WhatsApp</button>
-          </div>
+        <div>
+          <span class="topbar-month" id="topbar-month">Maio</span>
+          <span class="topbar-year" id="topbar-year">2026</span>
         </div>
       </div>
+      <div class="topbar-right">
+        <button class="today-btn" id="today-btn">Hoje</button>
+        <select class="month-sel" id="month-sel"></select>
+      </div>
     </div>
 
+    <!-- CALENDAR -->
+    <div class="cal-wrap">
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:var(--or)"></div>Hoje</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--gr)"></div>Com compromisso</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--or2)"></div>⚠️ Vence em 2 dias</div>
+      </div>
+      <div class="weekdays">
+        <div class="weekday weekend">Dom</div>
+        <div class="weekday">Seg</div>
+        <div class="weekday">Ter</div>
+        <div class="weekday">Qua</div>
+        <div class="weekday">Qui</div>
+        <div class="weekday">Sex</div>
+        <div class="weekday weekend">Sáb</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </main>
+
+  <!-- EVENT PANEL -->
+  <div class="event-panel">
+    <div class="ep-header">
+      <div class="ep-label">Compromissos</div>
+      <div class="ep-date" id="ep-date">Selecione um dia</div>
+    </div>
+
+    <!-- PLACEHOLDER -->
+    <div class="ep-placeholder" id="ep-placeholder">
+      <div class="ep-placeholder-icon">📅</div>
+      <div class="ep-placeholder-txt">Clique em um dia no calendário para ver e adicionar compromissos</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="ep-body" id="ep-body">
+      <div class="ev-list" id="ev-list"></div>
+      <div class="ev-form">
+        <div class="form-edit-badge" id="edit-badge">✏️ Modo edição</div>
+        <div class="form-row">
+          <div class="fg sm">
+            <label>Horário</label>
+            <input type="time" id="f-time" value="09:00">
+          </div>
+          <div class="fg">
+            <label>Título *</label>
+            <input type="text" id="f-title" placeholder="Ex: Reunião financeira...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Responsável (opcional)</label>
+            <input type="text" id="f-resp" placeholder="Nome do responsável...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Descrição / Observações</label>
+            <textarea id="f-desc" placeholder="Detalhes adicionais..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" id="btn-save">💾 <span id="btn-save-label">Salvar</span></button>
+          <button class="btn-wpp" id="btn-wpp">📲 WhatsApp</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  CONFIG
-// ══════════════════════════════════════════════
-const PASS             = '@fin2026';
+// ════════════════════════════════════════════════
+const PASS        = '@fin2026';
+const SUPA_URL    = 'https://fogfvlfbvrzbbdyqpddd.supabase.co';
+const SUPA_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZ2Z2bGZidnJ6YmJkeXFwZGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjYzNzYsImV4cCI6MjA5NDEwMjM3Nn0.3xmf8ctCLsyhssJ5Z7rqTTxPXsLJzusRVt_TM8O1cjQ';
 
-const SUPA_URL         = 'https://fogfvlfbvrzbbdyqpddd.supabase.co';
-const SUPA_KEY         = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvZ2Z2bGZidnJ6YmJkeXFwZGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MjYzNzYsImV4cCI6MjA5NDEwMjM3Nn0.3xmf8ctCLsyhssJ5Z7rqTTxPXsLJzusRVt_TM8O1cjQ';
-
-const EMAILJS_PK  = 'ysAnB9uIm9xSBpNvM';
-const EMAILJS_SVC = 'service_vbm1j7f';
-const EMAILJS_TPL = 'template_i0au6ar';
-emailjs.init(EMAILJS_PK);
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  STATE
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 let events    = {};
-let contacts  = [];   // [{type:'email', value:'...'}]
+let contacts  = [];
 let curDate   = new Date();
 let selDate   = null;
 let editingId = null;
@@ -355,488 +502,444 @@ let alertOpen = false;
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════
+function dk(y,m,d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function fmtDate(k) { const[y,m,d]=k.split('-'); return `${d}/${m}/${y}`; }
+
+let toastTimer;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 3500);
+}
+function showSync() { document.getElementById('sync').classList.add('show'); }
+function hideSync() { document.getElementById('sync').classList.remove('show'); }
+function showLoad(txt='Carregando...') { document.getElementById('load-text').textContent=txt; document.getElementById('loading').classList.remove('hide'); }
+function hideLoad() { document.getElementById('loading').classList.add('hide'); }
+
+// ════════════════════════════════════════════════
 //  LOGIN
-// ══════════════════════════════════════════════
-const lsEl = document.getElementById('ls');
-if (sessionStorage.getItem('igl_ok') === '1') lsEl.style.display = 'none';
-
-document.getElementById('pwb').addEventListener('click', tryLoginAndLoad);
-document.getElementById('pwi').addEventListener('keydown', e => { if (e.key === 'Enter') tryLoginAndLoad(); });
-document.getElementById('pwe').addEventListener('click', () => {
-  const i = document.getElementById('pwi');
+// ════════════════════════════════════════════════
+const loginEl = document.getElementById('login');
+document.getElementById('pw-eye').addEventListener('click', () => {
+  const i = document.getElementById('pw-inp');
   i.type = i.type === 'password' ? 'text' : 'password';
-  document.getElementById('pwe').textContent = i.type === 'password' ? '👁️' : '🙈';
+  document.getElementById('pw-eye').textContent = i.type === 'password' ? '👁' : '🙈';
 });
-function tryLogin() {
-  // handled by tryLoginAndLoad
+document.getElementById('pw-btn').addEventListener('click', doLogin);
+document.getElementById('pw-inp').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const inp = document.getElementById('pw-inp');
+  if (inp.value !== PASS) {
+    document.getElementById('pw-err').classList.add('show');
+    inp.classList.add('shake');
+    setTimeout(() => { inp.classList.remove('shake'); }, 300);
+    inp.value = ''; inp.focus();
+    return;
+  }
+  loginEl.style.opacity = '0';
+  loginEl.style.transition = 'opacity .4s';
+  setTimeout(() => loginEl.style.display = 'none', 400);
+  await loadAll();
+  setupRealtime();
 }
 
-// ══════════════════════════════════════════════
-//  SUPABASE
-// ══════════════════════════════════════════════
-async function dbLoad() {
+// ════════════════════════════════════════════════
+//  DATA LOADING
+// ════════════════════════════════════════════════
+async function loadAll() {
+  showLoad('Carregando calendário...');
   try {
-    // Load events
-    const { data: evData, error: evErr } = await sb.from('eventos').select('*');
-    if (evErr) throw evErr;
+    const [evRes, ctRes] = await Promise.all([
+      sb.from('eventos').select('*'),
+      sb.from('contatos').select('*').order('created_at', { ascending: true })
+    ]);
+    if (evRes.error) throw evRes.error;
+    if (ctRes.error) throw ctRes.error;
     events = {};
-    (evData || []).forEach(ev => {
+    (evRes.data || []).forEach(ev => {
       if (!events[ev.data]) events[ev.data] = [];
-      events[ev.data].push({
-        id: ev.id,
-        time: ev.time || '',
-        title: ev.title || '',
-        responsavel: ev.responsavel || '',
-        desc: ev.descricao || ''
-      });
+      events[ev.data].push({ id: ev.id, time: ev.time||'', title: ev.title||'', responsavel: ev.responsavel||'', desc: ev.descricao||'' });
     });
-    console.log('✅ Eventos carregados:', evData?.length || 0);
+    contacts = (ctRes.data || []).map(c => ({ id: c.id, value: c.value }));
+    renderAll();
   } catch(e) {
-    console.error('❌ Erro ao carregar eventos:', e);
-    showToast('❌ Erro ao carregar dados!', 'err');
-  }
-
-  try {
-    // Load contacts
-    const { data: ctData, error: ctErr } = await sb.from('contatos').select('*').order('created_at', { ascending: true });
-    if (ctErr) throw ctErr;
-    contacts = (ctData || []).map(c => ({ id: c.id, type: c.type || 'email', value: c.value }));
-    console.log('✅ Contatos carregados:', contacts.length);
-  } catch(e) {
-    console.error('❌ Erro ao carregar contatos:', e);
-    contacts = [];
+    console.error('Load error:', e);
+    toast('❌ Erro ao carregar dados. Verifique a conexão.', 'err');
+  } finally {
+    hideLoad();
   }
 }
 
-async function dbSaveEvent(ev, data) {
-  try {
-    const payload = {
-      id: String(ev.id),
-      data: String(data),
-      time: ev.time || '',
-      title: ev.title || '',
-      responsavel: ev.responsavel || '',
-      descricao: ev.desc || ''
-    };
-    console.log('💾 Salvando no Supabase:', payload);
-    const { error } = await sb.from('eventos').upsert(payload, { onConflict: 'id' });
-    if (error) throw error;
-    console.log('✅ Evento salvo no Supabase!');
-  } catch(e) {
-    console.error('❌ Erro ao salvar evento:', e);
-    showToast('❌ Erro ao salvar! Tente novamente.', 'err');
-  }
+// ════════════════════════════════════════════════
+//  SUPABASE OPERATIONS
+// ════════════════════════════════════════════════
+async function saveEventDB(ev, data) {
+  showSync();
+  const { error } = await sb.from('eventos').upsert({
+    id: String(ev.id), data: String(data),
+    time: ev.time||'', title: ev.title||'',
+    responsavel: ev.responsavel||'', descricao: ev.desc||''
+  }, { onConflict: 'id' });
+  hideSync();
+  if (error) throw error;
 }
 
-async function dbDeleteEvent(id) {
-  try {
-    const { error } = await sb.from('eventos').delete().eq('id', String(id));
-    if (error) throw error;
-    console.log('✅ Evento deletado:', id);
-  } catch(e) {
-    console.error('❌ Erro ao deletar evento:', e);
-  }
+async function deleteEventDB(id) {
+  showSync();
+  const { error } = await sb.from('eventos').delete().eq('id', String(id));
+  hideSync();
+  if (error) throw error;
 }
 
-async function dbSaveContact(ct) {
-  const { data, error } = await sb.from('contatos').insert({ type: ct.type, value: ct.value }).select().single();
-  if (error) { console.error('Save contact:', error); return null; }
-  return data;
-}
-
-async function dbDeleteContact(id) {
-  const { error } = await sb.from('contatos').delete().eq('id', id);
-  if (error) console.error('Delete contact:', error);
-}
-
-// ══════════════════════════════════════════════
-//  NOTIFICATIONS
-// ══════════════════════════════════════════════
-function getEmails() { return contacts.filter(c => c.type === 'email').map(c => c.value); }
-async function sendEmails(dataEvento, horario, titulo, responsavel, descricao) {
-  const emails = getEmails();
-  if (!emails.length) { console.log('Nenhum e-mail cadastrado.'); return; }
-  let enviados = 0;
-  for (const email of emails) {
-    try {
-      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
-        to_email:    email,
-        data_evento: dataEvento,
-        horario:     horario || '—',
-        titulo:      titulo,
-        responsavel: responsavel || '—',
-        descricao:   descricao || '—'
-      });
-      enviados++;
-      console.log('✅ E-mail enviado para:', email);
-    } catch(e) {
-      console.error('❌ Erro ao enviar para', email, e);
-    }
-  }
-  if (enviados > 0) showToast('📧 E-mail enviado com sucesso!', 'email');
-  else showToast('❌ Erro ao enviar e-mail!', 'err');
-}
-
-function buildWppMsg(data, horario, titulo, responsavel, desc) {
-  return `📅 *IGL • Calendário*\n\n*Data:* ${fmtDate(data)}\n*Horário:* ${horario||'--:--'}\n*Compromisso:* ${titulo}${responsavel?'\n*Responsável:* '+responsavel:''}${desc?'\n*Obs:* '+desc:''}\n\n_Enviado via IGL Calendário_`;
-}
-
-function sendWhatsApp(data, horario, titulo, responsavel, desc) {
-  const msg = buildWppMsg(data, horario, titulo, responsavel, desc);
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  CONTACTS
-// ══════════════════════════════════════════════
-function renderContacts() {
-  const list = document.getElementById('contact-list');
+// ════════════════════════════════════════════════
+function renderEmailList() {
+  const list = document.getElementById('email-list');
   list.innerHTML = '';
   if (!contacts.length) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--mu);text-align:center;padding:8px">Nenhum contato cadastrado</div>';
+    list.innerHTML = '<div class="email-none">Nenhum e-mail cadastrado</div>';
     return;
   }
   contacts.forEach(ct => {
-    const div = document.createElement('div'); div.className = 'contact-item';
+    const div = document.createElement('div'); div.className = 'email-item';
     div.innerHTML = `
-      <span class="contact-icon">${ct.type === 'email' ? '📧' : '📲'}</span>
-      <span class="contact-val">${ct.value}</span>
-      <button class="contact-del" onclick="removeContact('${ct.id}')" title="Excluir">×</button>`;
+      <div class="email-dot"></div>
+      <div class="email-val" title="${ct.value}">${ct.value}</div>
+      <div class="email-actions">
+        <button class="email-btn" onclick="editEmail('${ct.id}')" title="Editar">✏️</button>
+        <button class="email-btn" onclick="deleteEmail('${ct.id}')" title="Excluir">🗑️</button>
+      </div>`;
     list.appendChild(div);
   });
 }
 
-document.getElementById('ct-add').addEventListener('click', addContact);
-document.getElementById('ct-val').addEventListener('keydown', e => { if (e.key === 'Enter') addContact(); });
+document.getElementById('email-add-btn').addEventListener('click', addEmail);
+document.getElementById('email-inp').addEventListener('keydown', e => { if (e.key === 'Enter') addEmail(); });
 
-async function addContact() {
-  const val = document.getElementById('ct-val').value.trim();
-  if (!val) { showToast('⚠️ Digite um e-mail!', 'err'); return; }
-  if (!val.includes('@') || !val.includes('.')) { showToast('⚠️ E-mail inválido!', 'err'); return; }
-  if (contacts.find(c => c.value.toLowerCase() === val.toLowerCase())) { showToast('⚠️ E-mail já cadastrado!', 'err'); return; }
-  document.getElementById('ct-add').disabled = true;
-  showToast('⏳ Salvando...');
+async function addEmail() {
+  const inp = document.getElementById('email-inp');
+  const val = inp.value.trim().toLowerCase();
+  if (!val) { toast('⚠️ Digite um e-mail!', 'err'); return; }
+  if (!val.includes('@') || !val.includes('.')) { toast('⚠️ E-mail inválido!', 'err'); return; }
+  if (contacts.find(c => c.value === val)) { toast('⚠️ E-mail já cadastrado!', 'err'); return; }
+  const btn = document.getElementById('email-add-btn');
+  btn.disabled = true; showSync();
   try {
     const { data, error } = await sb.from('contatos').insert({ type: 'email', value: val }).select().single();
     if (error) throw error;
-    contacts.push({ id: data.id, type: 'email', value: data.value });
-    renderContacts();
-    document.getElementById('ct-val').value = '';
-    showToast('✅ E-mail salvo com sucesso!');
+    contacts.push({ id: data.id, value: data.value });
+    renderEmailList(); inp.value = '';
+    toast('✅ E-mail adicionado!', 'ok');
   } catch(e) {
-    console.error('Erro ao salvar contato:', e);
-    showToast('❌ Erro ao salvar! Verifique o Supabase.', 'err');
-  } finally {
-    document.getElementById('ct-add').disabled = false;
-  }
+    console.error(e); toast('❌ Erro ao salvar e-mail!', 'err');
+  } finally { btn.disabled = false; hideSync(); }
 }
 
-async function removeContact(id) {
-  if (!confirm('Excluir este e-mail?')) return;
-  try {
-    const { error } = await sb.from('contatos').delete().eq('id', id);
-    if (error) throw error;
-    contacts = contacts.filter(c => String(c.id) !== String(id));
-    renderContacts();
-    showToast('🗑️ E-mail removido.');
-  } catch(e) {
-    console.error('Erro ao remover:', e);
-    showToast('❌ Erro ao remover!', 'err');
-  }
-}
-
-// Edit contact
-async function editContact(id) {
-  const ct = contacts.find(c => String(c.id) === String(id));
-  if (!ct) return;
-  const newVal = prompt('Editar e-mail:', ct.value);
-  if (!newVal || newVal.trim() === ct.value) return;
-  const val = newVal.trim();
-  if (!val.includes('@') || !val.includes('.')) { showToast('⚠️ E-mail inválido!', 'err'); return; }
+async function editEmail(id) {
+  const ct = contacts.find(c => String(c.id) === String(id)); if (!ct) return;
+  const novo = prompt('Editar e-mail:', ct.value);
+  if (!novo || novo.trim() === ct.value) return;
+  const val = novo.trim().toLowerCase();
+  if (!val.includes('@') || !val.includes('.')) { toast('⚠️ E-mail inválido!', 'err'); return; }
+  showSync();
   try {
     const { error } = await sb.from('contatos').update({ value: val }).eq('id', id);
     if (error) throw error;
     contacts = contacts.map(c => String(c.id) === String(id) ? { ...c, value: val } : c);
-    renderContacts();
-    showToast('✅ E-mail atualizado!');
-  } catch(e) {
-    console.error('Erro ao editar:', e);
-    showToast('❌ Erro ao editar!', 'err');
-  }
+    renderEmailList(); toast('✅ E-mail atualizado!', 'ok');
+  } catch(e) { toast('❌ Erro ao editar!', 'err'); }
+  finally { hideSync(); }
 }
 
-// ══════════════════════════════════════════════
-//  ALERTS
-// ══════════════════════════════════════════════
-function renderAlerts() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const alerts = [];
-  for (let d = 0; d <= 2; d++) {
-    const dt = new Date(today); dt.setDate(dt.getDate() + d);
-    const k = dk(dt.getFullYear(), dt.getMonth(), dt.getDate());
-    (events[k] || []).forEach(ev => alerts.push({ ...ev, k, diff: d }));
-  }
-  const inner = document.getElementById('alert-inner');
-  const count = document.getElementById('alert-count');
-  count.textContent = alerts.length;
-  inner.innerHTML = '';
-  if (!alerts.length) {
-    inner.innerHTML = '<div class="no-alerts">✅ Nenhum compromisso nos próximos 2 dias</div>';
+async function deleteEmail(id) {
+  if (!confirm('Excluir este e-mail?')) return;
+  showSync();
+  try {
+    const { error } = await sb.from('contatos').delete().eq('id', String(id));
+    if (error) throw error;
+    contacts = contacts.filter(c => String(c.id) !== String(id));
+    renderEmailList(); toast('🗑️ E-mail removido.', 'ok');
+  } catch(e) { toast('❌ Erro ao remover!', 'err'); }
+  finally { hideSync(); }
+}
+
+// ════════════════════════════════════════════════
+//  GMAIL SMTP (Nodemailer)
+// ════════════════════════════════════════════════
+async function sendEmails(dataEvento, horario, titulo, responsavel, descricao) {
+  if (!contacts.length) {
+    console.log('Nenhum e-mail cadastrado para notificação.');
     return;
   }
-  alerts.forEach(ev => {
-    const div = document.createElement('div'); div.className = 'ai';
-    const when = ev.diff === 0 ? '🔴 HOJE' : ev.diff === 1 ? '🟡 AMANHÃ' : '🟠 EM 2 DIAS';
-    div.innerHTML = `<div class="aw">${when}</div><div class="ae">${ev.title}${ev.responsavel?' · '+ev.responsavel:''}</div><div class="am">${fmtDate(ev.k)} ${ev.time?'às '+ev.time:''}</div>`;
-    inner.appendChild(div);
-  });
+  const emails = contacts.map(c => c.value);
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        emails,
+        data_evento: dataEvento,
+        horario:     horario || '—',
+        titulo,
+        responsavel: responsavel || '—',
+        descricao:   descricao  || '—'
+      })
+    });
+    const json = await res.json();
+    if (json.ok && json.sent > 0) {
+      toast(`📧 E-mail enviado para ${json.sent} pessoa(s)!`, 'email');
+      console.log('✅ E-mails enviados:', json);
+    } else {
+      console.warn('⚠️ Resultado do envio:', json);
+    }
+  } catch(e) {
+    console.error('❌ Erro ao enviar e-mails:', e);
+    toast('❌ Erro ao enviar e-mail!', 'err');
+  }
 }
 
-// Toggle alert panel
+// ════════════════════════════════════════════════
+//  ALERTS
+// ════════════════════════════════════════════════
 document.getElementById('alert-toggle').addEventListener('click', () => {
   alertOpen = !alertOpen;
   document.getElementById('alert-body').classList.toggle('open', alertOpen);
   document.getElementById('alert-arrow').classList.toggle('open', alertOpen);
 });
 
-// ══════════════════════════════════════════════
-//  MONTH NAV
-// ══════════════════════════════════════════════
-const msel = document.getElementById('msel');
-const yinp = document.getElementById('yinp');
-MONTHS.forEach((m, i) => { const o = document.createElement('option'); o.value=i; o.textContent=m; msel.appendChild(o); });
-msel.value = curDate.getMonth(); yinp.value = curDate.getFullYear();
-msel.addEventListener('change', () => { curDate.setMonth(+msel.value); renderAll(); });
-yinp.addEventListener('change', () => { const y=parseInt(yinp.value); if(y>=2020&&y<=2040){curDate.setFullYear(y);renderAll();} });
-document.getElementById('prev').addEventListener('click', () => { curDate.setMonth(curDate.getMonth()-1); msel.value=curDate.getMonth(); yinp.value=curDate.getFullYear(); renderAll(); });
-document.getElementById('next').addEventListener('click', () => { curDate.setMonth(curDate.getMonth()+1); msel.value=curDate.getMonth(); yinp.value=curDate.getFullYear(); renderAll(); });
-
-// ══════════════════════════════════════════════
-//  MOBILE TABS
-// ══════════════════════════════════════════════
-const isMob = () => window.innerWidth <= 900;
-document.querySelectorAll('.tb').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    if (!isMob()) return;
-    const tab = btn.dataset.tab;
-    document.getElementById('tab-cal').style.display = tab==='cal' ? 'flex' : 'none';
-    document.getElementById('tab-ev').style.display  = tab==='ev'  ? 'block' : 'none';
-    document.getElementById('tab-ct').style.display  = tab==='ct'  ? 'block' : 'none';
+function renderAlerts() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const alerts = [];
+  for (let d = 0; d <= 2; d++) {
+    const dt = new Date(today); dt.setDate(dt.getDate() + d);
+    const k = dk(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    (events[k]||[]).forEach(ev => alerts.push({ ...ev, k, diff: d }));
+  }
+  document.getElementById('alert-badge').textContent = alerts.length;
+  const items = document.getElementById('alert-items');
+  items.innerHTML = '';
+  if (!alerts.length) {
+    items.innerHTML = '<div class="alert-empty">✅ Nenhum compromisso nos próximos 2 dias</div>';
+    return;
+  }
+  alerts.forEach(ev => {
+    const div = document.createElement('div'); div.className = 'alert-item';
+    const when = ev.diff===0?'🔴 Hoje':ev.diff===1?'🟡 Amanhã':'🟠 Em 2 dias';
+    div.innerHTML = `<div class="alert-when">${when}</div><div class="alert-ev-title">${ev.title}${ev.responsavel?' · '+ev.responsavel:''}</div><div class="alert-ev-meta">${fmtDate(ev.k)}${ev.time?' às '+ev.time:''}</div>`;
+    items.appendChild(div);
   });
-});
+  // Auto-open if alerts exist
+  if (alerts.length && !alertOpen) {
+    alertOpen = true;
+    document.getElementById('alert-body').classList.add('open');
+    document.getElementById('alert-arrow').classList.add('open');
+  }
+}
 
-// ══════════════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════════════
-function dk(y,m,d){ return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-function fmtDate(k){ const[y,m,d]=k.split('-'); return `${d}/${m}/${y}`; }
+// ════════════════════════════════════════════════
+//  MONTH NAV
+// ════════════════════════════════════════════════
+const monthSel = document.getElementById('month-sel');
+MONTHS.forEach((m,i) => { const o = document.createElement('option'); o.value=i; o.textContent=m; monthSel.appendChild(o); });
 
-// ══════════════════════════════════════════════
+function updateNav() {
+  monthSel.value = curDate.getMonth();
+  document.getElementById('topbar-month').textContent = MONTHS[curDate.getMonth()];
+  document.getElementById('topbar-year').textContent = curDate.getFullYear();
+}
+
+document.getElementById('prev').addEventListener('click', () => { curDate.setMonth(curDate.getMonth()-1); updateNav(); renderCal(); });
+document.getElementById('next').addEventListener('click', () => { curDate.setMonth(curDate.getMonth()+1); updateNav(); renderCal(); });
+document.getElementById('today-btn').addEventListener('click', () => { curDate = new Date(); updateNav(); renderCal(); });
+monthSel.addEventListener('change', () => { curDate.setMonth(+monthSel.value); updateNav(); renderCal(); });
+
+// ════════════════════════════════════════════════
 //  CALENDAR
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function renderCal() {
-  const g = document.getElementById('grid'); g.innerHTML = '';
+  const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
   const y=curDate.getFullYear(), m=curDate.getMonth();
   const today=new Date(); today.setHours(0,0,0,0);
   const fd=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
-  for(let i=0;i<fd;i++){const e=document.createElement('div');e.className='cc emp';g.appendChild(e);}
+  for(let i=0;i<fd;i++){const e=document.createElement('div');e.className='cell empty';grid.appendChild(e);}
   for(let d=1;d<=dim;d++){
-    const cell=document.createElement('div'); cell.className='cc';
+    const cell=document.createElement('div'); cell.className='cell';
     const k=dk(y,m,d), de=events[k]||[];
     const dt=new Date(y,m,d); dt.setHours(0,0,0,0);
     const diff=Math.round((dt-today)/864e5);
     const isT=diff===0, isSoon=diff>0&&diff<=2&&de.length>0;
-    if(isT) cell.classList.add('tod');
+    if(isT) cell.classList.add('today');
     else if(isSoon) cell.classList.add('soon');
-    if(de.length>0) cell.classList.add('hev');
-    if(selDate===k) cell.classList.add('sel');
-    const dn=document.createElement('div'); dn.className='dn'; dn.textContent=d; cell.appendChild(dn);
-    if(isSoon&&!isT){const sb=document.createElement('div');sb.className='sb';sb.textContent='⚠️ em breve';cell.appendChild(sb);}
+    if(de.length) cell.classList.add('has-ev');
+    if(selDate===k) cell.classList.add('selected');
+    const num=document.createElement('div'); num.className='cell-num'; num.textContent=d; cell.appendChild(num);
+    if(isT){const b=document.createElement('div');b.className='cell-today-badge';b.textContent='hoje';cell.appendChild(b);}
+    else if(isSoon){const b=document.createElement('div');b.className='cell-soon-badge';b.textContent='⚠️ em breve';cell.appendChild(b);}
     de.slice(0,3).forEach((ev,i)=>{
-      const ch=document.createElement('div'); ch.className='chip'+(i%2===1?' g':'');
-      ch.textContent=(ev.time?ev.time+' ':'')+ev.title; cell.appendChild(ch);
+      const p=document.createElement('div'); p.className='ev-pill'+(i%2===1?' alt':'');
+      p.textContent=(ev.time?ev.time+' ':'')+ev.title; cell.appendChild(p);
     });
-    if(de.length>3){const mo=document.createElement('div');mo.className='chip more';mo.textContent=`+${de.length-3} mais`;cell.appendChild(mo);}
-    cell.addEventListener('click',()=>selDay(k,d,m,y));
-    g.appendChild(cell);
+    if(de.length>3){const p=document.createElement('div');p.className='ev-pill more';p.textContent=`+${de.length-3} mais`;cell.appendChild(p);}
+    cell.addEventListener('click',()=>selectDay(k,d,m,y));
+    grid.appendChild(cell);
   }
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  SELECT DAY
-// ══════════════════════════════════════════════
-function selDay(k,d,m,y){
+// ════════════════════════════════════════════════
+function selectDay(k,d,m,y) {
   selDate=k; resetForm(); renderCal();
-  document.getElementById('edl').innerHTML=`<span>${d}</span> de ${MONTHS[m]}, ${y}`;
-  document.getElementById('ecb').style.display='block';
-  document.getElementById('tab-ev').classList.add('on');
+  document.getElementById('ep-date').innerHTML=`<span>${d}</span> de ${MONTHS[m]}, ${y}`;
+  document.getElementById('ep-placeholder').style.display='none';
+  document.getElementById('ep-body').classList.add('show');
   renderEvList(k);
-  if(isMob()){
-    document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
-    document.querySelector('[data-tab="ev"]').classList.add('on');
-    document.getElementById('tab-cal').style.display='none';
-    document.getElementById('tab-ev').style.display='block';
-    document.getElementById('tab-ct').style.display='none';
-    document.getElementById('tab-ev').scrollIntoView({behavior:'smooth'});
-  }
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  EVENT LIST
-// ══════════════════════════════════════════════
-function renderEvList(k){
-  const list=document.getElementById('evlist'); list.innerHTML='';
-  const de=(events[k]||[]).slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  if(!de.length){list.innerHTML='<div class="noev">Nenhum compromisso.<br>Adicione abaixo 👇</div>';return;}
+// ════════════════════════════════════════════════
+function renderEvList(k) {
+  const list = document.getElementById('ev-list'); list.innerHTML = '';
+  const de = (events[k]||[]).slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!de.length){list.innerHTML='<div class="ev-none">Nenhum compromisso neste dia.<br>Adicione abaixo 👇</div>';return;}
   de.forEach(ev=>{
-    const item=document.createElement('div'); item.className='evi';
+    const item=document.createElement('div'); item.className='ev-item';
     item.innerHTML=`
-      <div class="eit">${ev.time||'--:--'}</div>
-      <div class="eib">
-        <div class="eitn">${ev.title}</div>
-        ${ev.responsavel?`<div class="eirp">👤 ${ev.responsavel}</div>`:''}
-        ${ev.desc?`<div class="eidc">${ev.desc}</div>`:''}
+      <div class="ev-time">${ev.time||'--:--'}</div>
+      <div class="ev-content">
+        <div class="ev-title">${ev.title}</div>
+        ${ev.responsavel?`<div class="ev-resp">👤 ${ev.responsavel}</div>`:''}
+        ${ev.desc?`<div class="ev-desc">${ev.desc}</div>`:''}
       </div>
-      <div class="eia">
-        <button class="bact" title="WhatsApp" onclick="wppEv('${k}','${ev.id}')">📲</button>
-        <button class="bact" title="Editar" onclick="editEv('${k}','${ev.id}')">✏️</button>
-        <button class="bact" title="Excluir" onclick="delEv('${k}','${ev.id}')">🗑️</button>
+      <div class="ev-acts">
+        <button class="ev-act" title="WhatsApp" onclick="wppEv('${k}','${ev.id}')">📲</button>
+        <button class="ev-act" title="Editar" onclick="editEv('${k}','${ev.id}')">✏️</button>
+        <button class="ev-act" title="Excluir" onclick="delEv('${k}','${ev.id}')">🗑️</button>
       </div>`;
     list.appendChild(item);
   });
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  SAVE / EDIT / DELETE
-// ══════════════════════════════════════════════
-document.getElementById('bsave').addEventListener('click', async () => {
-  if(!selDate){showToast('⚠️ Selecione um dia!','err');return;}
-  const title=document.getElementById('ftl').value.trim();
-  if(!title){showToast('⚠️ Informe o título!','err');return;}
+// ════════════════════════════════════════════════
+document.getElementById('btn-save').addEventListener('click', async () => {
+  if(!selDate){toast('⚠️ Selecione um dia no calendário!','err');return;}
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){toast('⚠️ Informe o título do compromisso!','err');return;}
+  const btn=document.getElementById('btn-save'); btn.disabled=true;
   if(!events[selDate]) events[selDate]=[];
   const ev={
-    id: editingId||Date.now().toString(),
-    time: document.getElementById('ft').value,
+    id: editingId||String(Date.now()),
+    time: document.getElementById('f-time').value,
     title,
-    responsavel: document.getElementById('frp').value.trim(),
-    desc: document.getElementById('fdc').value.trim()
+    responsavel: document.getElementById('f-resp').value.trim(),
+    desc: document.getElementById('f-desc').value.trim()
   };
-  showToast('⏳ Salvando...','');
   if(editingId){
     const idx=events[selDate].findIndex(e=>e.id===editingId);
     if(idx>=0) events[selDate][idx]=ev;
-  } else {
-    events[selDate].push(ev);
-  }
-  await dbSaveEvent(ev, selDate);
-  // Notify
-  await sendEmails(fmtDate(selDate), ev.time, ev.title, ev.responsavel, ev.desc);
-  showToast('✅ Salvo! Notificações enviadas.','email');
-  resetForm(); renderEvList(selDate); renderCal(); renderAlerts();
+  } else { events[selDate].push(ev); }
+  renderEvList(selDate); renderCal(); renderAlerts();
+  try {
+    await saveEventDB(ev, selDate);
+    toast('✅ Compromisso salvo com sucesso!','ok');
+    await sendEmails(fmtDate(selDate),ev.time,ev.title,ev.responsavel,ev.desc);
+  } catch(e) { toast('❌ Erro ao salvar no banco!','err'); }
+  finally { btn.disabled=false; resetForm(); }
 });
 
 function editEv(k,id){
   const ev=(events[k]||[]).find(e=>e.id===id); if(!ev)return;
   editingId=id;
-  document.getElementById('ft').value=ev.time||'09:00';
-  document.getElementById('ftl').value=ev.title;
-  document.getElementById('frp').value=ev.responsavel||'';
-  document.getElementById('fdc').value=ev.desc||'';
-  document.getElementById('bsl').textContent='Atualizar';
-  document.getElementById('fen').classList.add('on');
-  document.getElementById('ftl').focus();
+  document.getElementById('f-time').value=ev.time||'09:00';
+  document.getElementById('f-title').value=ev.title;
+  document.getElementById('f-resp').value=ev.responsavel||'';
+  document.getElementById('f-desc').value=ev.desc||'';
+  document.getElementById('btn-save-label').textContent='Atualizar';
+  document.getElementById('edit-badge').classList.add('show');
+  document.getElementById('f-title').focus();
 }
 
 async function delEv(k,id){
   if(!confirm('Excluir este compromisso?'))return;
   events[k]=(events[k]||[]).filter(e=>e.id!==id);
   if(!events[k].length) delete events[k];
-  await dbDeleteEvent(id);
   renderEvList(k); renderCal(); renderAlerts();
-  showToast('🗑️ Compromisso removido.');
+  try { await deleteEventDB(id); toast('🗑️ Compromisso removido.','ok'); }
+  catch(e){ toast('❌ Erro ao remover!','err'); }
 }
 
 function resetForm(){
   editingId=null;
-  document.getElementById('ftl').value='';
-  document.getElementById('frp').value='';
-  document.getElementById('fdc').value='';
-  document.getElementById('ft').value='09:00';
-  document.getElementById('bsl').textContent='Salvar';
-  document.getElementById('fen').classList.remove('on');
+  ['f-title','f-resp','f-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-time').value='09:00';
+  document.getElementById('btn-save-label').textContent='Salvar';
+  document.getElementById('edit-badge').classList.remove('show');
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 //  WHATSAPP
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════════
 function wppEv(k,id){
   const ev=(events[k]||[]).find(e=>e.id===id); if(!ev)return;
-  sendWhatsApp(k, ev.time, ev.title, ev.responsavel, ev.desc);
-  showToast('📲 Abrindo WhatsApp...','wpp');
-}
-document.getElementById('bwpp').addEventListener('click',()=>{
-  if(!selDate){showToast('⚠️ Selecione um dia!','err');return;}
-  const de=events[selDate]||[];
-  if(!de.length){showToast('⚠️ Nenhum compromisso!','err');return;}
-  const sorted=[...de].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  let msg=`📅 *IGL • Calendário*\n\n*Data:* ${fmtDate(selDate)}\n\n`;
-  sorted.forEach(ev=>{msg+=`🕐 ${ev.time||'--:--'} — *${ev.title}*${ev.responsavel?' ('+ev.responsavel+')':''}${ev.desc?'\n   '+ev.desc:''}\n`;});
-  msg+='\n_Enviado via IGL Calendário_';
+  const msg=`📅 *IGL • Calendário*\n\n*Data:* ${fmtDate(k)}\n*Horário:* ${ev.time||'--:--'}\n*Compromisso:* ${ev.title}${ev.responsavel?'\n*Responsável:* '+ev.responsavel:''}${ev.desc?'\n*Obs:* '+ev.desc:''}\n\n_Enviado via IGL Calendário_`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
-  showToast('📲 Abrindo WhatsApp...','wpp');
+  toast('📲 Abrindo WhatsApp...','wpp');
+}
+document.getElementById('btn-wpp').addEventListener('click',()=>{
+  if(!selDate){toast('⚠️ Selecione um dia!','err');return;}
+  const de=events[selDate]||[];
+  if(!de.length){toast('⚠️ Nenhum compromisso neste dia!','err');return;}
+  let msg=`📅 *IGL • Calendário*\n\n*Data:* ${fmtDate(selDate)}\n\n`;
+  de.sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(ev=>{
+    msg+=`🕐 ${ev.time||'--:--'} — *${ev.title}*${ev.responsavel?' ('+ev.responsavel+')':''}${ev.desc?'\n   '+ev.desc:''}\n`;
+  });
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg+'\n_Enviado via IGL Calendário_')}`,'_blank');
+  toast('📲 Abrindo WhatsApp...','wpp');
 });
 
-// ══════════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════════
-let tt;
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast on'+(type?' '+type:'');
-  clearTimeout(tt); tt=setTimeout(()=>{t.className='toast';},3200);
+// ════════════════════════════════════════════════
+//  REALTIME SYNC
+// ════════════════════════════════════════════════
+function setupRealtime(){
+  sb.channel('igl-realtime')
+    .on('postgres_changes',{event:'*',schema:'public',table:'eventos'}, async()=>{
+      showSync();
+      const {data,error}=await sb.from('eventos').select('*');
+      if(!error){
+        events={};
+        (data||[]).forEach(ev=>{
+          if(!events[ev.data])events[ev.data]=[];
+          events[ev.data].push({id:ev.id,time:ev.time||'',title:ev.title||'',responsavel:ev.responsavel||'',desc:ev.descricao||''});
+        });
+        renderCal(); renderAlerts();
+        if(selDate) renderEvList(selDate);
+      }
+      hideSync();
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'contatos'}, async()=>{
+      showSync();
+      const {data,error}=await sb.from('contatos').select('*').order('created_at',{ascending:true});
+      if(!error) contacts=(data||[]).map(c=>({id:c.id,value:c.value}));
+      renderEmailList(); hideSync();
+    })
+    .subscribe();
 }
 
-// ══════════════════════════════════════════════
-//  RENDER ALL + INIT
-// ══════════════════════════════════════════════
-function renderAll(){ renderCal(); renderAlerts(); renderContacts(); }
-
-async function init(){
-  // Only load if logged in
-  if (sessionStorage.getItem('igl_ok') !== '1') {
-    document.getElementById('loading').classList.add('hide');
-    return;
-  }
-  document.getElementById('loading').classList.remove('hide');
-  await dbLoad();
-  renderAll();
-  document.getElementById('loading').classList.add('hide');
-}
-
-// Override tryLogin to reload data after login
-const origTryLogin = tryLogin;
-async function tryLoginAndLoad() {
-  const inp = document.getElementById('pwi');
-  if (inp.value === PASS) {
-    sessionStorage.setItem('igl_ok', '1');
-    const ls2 = document.getElementById('ls');
-    ls2.style.opacity = '0'; ls2.style.transition = 'opacity .4s';
-    setTimeout(() => ls2.style.display = 'none', 400);
-    document.getElementById('loading').classList.remove('hide');
-    await dbLoad();
-    renderAll();
-    document.getElementById('loading').classList.add('hide');
-  } else {
-    document.getElementById('pwe2').classList.add('show');
-    inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 300);
-    inp.value = ''; inp.focus();
-  }
-}
-
-init();
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+function renderAll(){ renderCal(); renderAlerts(); renderEmailList(); updateNav(); }
+hideLoad();
 </script>
 </body>
 </html>
