@@ -1,5 +1,7 @@
 {
   "name": "igl-calendario",
   "version": "2.0.0",
-  "description": "IGL Calendário Financeiro SaaS"
+  "dependencies": {
+    "nodemailer": "^6.9.9"
+  }
 }
